@@ -27,42 +27,40 @@
 //Task 1
 __interrupt void Cla1Task1 (void)
 {
-//    cuentas_adc = (float)AdcaResultRegs.ADCRESULT0;
-//
-//    __mdebugstop();
-//
-//    //cuentas_adc = (float)@_AdcaResultRegs.ADCRESULT0;
-//    //cuentas_adc  = AdcaResultRegs.ADCRESULT0;
-//    //asm(" MUI16TOF32 cuentas_adc,  @_AdcaResultRegs.ADCRESULT0");
-//
-//    if (cuentas_adc >= 2000)
-//    {
-//        resultado = 1;
-//    }
-//    else
-//        resultado = 0;
-//    var_out=var_in/2.;
-//    __mdebugstop();
+    __mdebugstop();
+//------------Lectura-de-variables-----------//
+    float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;
+      vdc  = 740.0;
+      vg_a = 1.0;
+      vg_b = 2.0;
+      vg_c = 3.0;
+      ig_a = 4.0;
+      ig_b = 5.0;
+      ig_c = 6.0;
+//      vdc  = (float)(AdcaResultRegs.ADCRESULT0);
+//      vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+//      vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+//      vg_c = (float)(AdcaResultRegs.ADCRESULT3);
+//      ig_a = (float)(AdcaResultRegs.ADCRESULT4);
+//      ig_b = (float)(AdcbResultRegs.ADCRESULT6);
+//      ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+//-------------------------------------------//
 
-//    float A1, A2, A3, A4, A5;
-//    //A1 = (float)AdcaResultRegs.ADCRESULT0/2;
-//    A2 = 31;
-//    A1 = 25;
-//    A3 = 44;
-//    A4 = 100;
-//    A5 = (float)(AdcaResultRegs.ADCRESULT0);
-////    X = (A1 + A2 + A3 + A4)*100 + A5;
-//    Res = (A1 + A2 + A3 + A4)*100 + A5;
-
-
+      adc_read[0] = vg_a;
+      adc_read[1] = vg_b;
+      adc_read[2] = vg_c;
+      adc_read[3] = ig_a;
+      adc_read[4] = ig_b;
+      adc_read[5] = ig_c;
+      adc_read[6] = vdc;
 }
 
 __interrupt void Cla1Task2 (void)
 {
     __mdebugstop();
-    {
-    asm (" MSETFLG LVF=0");
-    }
+//    {
+//    asm (" MSETFLG LVF=0");
+//    }
 
 //-----Variables-para-reducir-operaciones----//
     float raiz_de_3, theta;
@@ -136,10 +134,10 @@ __interrupt void Cla1Task2 (void)
 //a2 = vg_q1;
 //a3 = i;
 
-    {
-        asm (" MSETFLG LVF=0");
-        asm (" MSETFLG NF=0");
-    }
+//    {
+//        asm (" MSETFLG LVF=0");
+//        asm (" MSETFLG NF=0");
+//    }
 }
 
 __interrupt void Cla1Task3 (void)
@@ -165,9 +163,9 @@ __interrupt void Cla1Task6 (void)
 __interrupt void Cla1Task7 (void)
 {
     __mdebugstop();
-    {
-    asm (" MSETFLG LVF=0");
-    }
+//    {
+//    asm (" MSETFLG LVF=0");
+//    }
 //    float A1, A2, A3, A4, A5;
 //    A1 = 25;
 //    A2 = 31;
@@ -333,10 +331,10 @@ __interrupt void Cla1Task7 (void)
     v_conv_c = (-(1./2)*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/(vdc/2);
 //-------------------------------------------//
 
-    {
-        asm (" MSETFLG LVF=0");
-        asm (" MSETFLG NF=0");
-    }
+//    {
+//        asm (" MSETFLG LVF=0");
+//        asm (" MSETFLG NF=0");
+//    }
 }
 
 __interrupt void Cla1Task8 (void)

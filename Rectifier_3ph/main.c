@@ -44,10 +44,10 @@ extern uint16_t CLA1mathTablesLoadSize;
 //
 //EPWM defines
 //
-#define PWM1_PERIOD            2000
-#define PWM1_DUTY_CYCLE        1000
-#define PWM2_PERIOD            10000
-#define PWM2_DUTY_CYCLE        5000
+//#define PWM1_PERIOD            2000
+//#define PWM1_DUTY_CYCLE        1000
+//#define PWM2_PERIOD            10000
+//#define PWM2_DUTY_CYCLE        5000
 
 //
 //CLA defines
@@ -57,20 +57,19 @@ extern uint16_t CLA1mathTablesLoadSize;
 //
 //Common
 //
-#define ADC_BUF_LEN            200
-#define LOWPASS                1
-#define HIGHPASS               (~LOWPASS)
+#define ADC_BUF_LEN     70
 
 //
 // Globals
 //------------maquina-de-estados-------------//
 uint16_t sw1, sw2;
 uint16_t estado   = 1;
-uint16_t contador = 0;
+//uint16_t contador = 0;
 uint16_t vg_q     = 0;
 uint16_t vdc      = 530;
 uint16_t boton_1  = 0;
 uint16_t boton_2  = 0;
+uint16_t fault    = 1;
 //-------------------------------------------//
 //Task 1 (ASM) Variables
 //
@@ -104,6 +103,10 @@ float a7;
 
 int aaa  = 0;
 int vg_q1 = 10;
+//-------------------------------------------//
+//---------------Variables-FSM---------------//
+#pragma DATA_SECTION(adc_read,"Cla1ToCpuMsgRAM");
+float adc_read [7];
 //-------------------------------------------//
 //---------------variables-pll---------------//
 #pragma DATA_SECTION(theta_l,"CpuToCla1MsgRAM");
@@ -201,7 +204,10 @@ float x_iq_g;
 //
 //Common (ASM) Variables
 //
-
+uint16_t SampleCount;
+uint16_t AdcBuf[ADC_BUF_LEN];
+//uint16_t AdcFiltBuf[ADC_BUF_LEN];
+uint16_t i = 0;
 //
 // Function Prototypes
 //
@@ -416,6 +422,19 @@ void main(void)
                     case sync_pll:
                         sw1 = 0;
                         sw2 = 0;
+
+
+//                        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag
+                        // Revisa si ocurrió overflow
+                        //
+                        if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+                        {
+                            AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+                            AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
+                        }
+                        PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+
+
                         if (DmaClaSrcSelRegs.CLA1TASKSRCSEL1.bit.TASK2 == 0)
                         {
                             EALLOW;
@@ -432,7 +451,27 @@ void main(void)
                     case pre_charge:
                         sw1 = 1;
                         sw2 = 0;
-                        if (vdc > 528)
+
+
+//                        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag
+                        // Revisa si ocurrió overflow
+                        //
+                        if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+                        {
+                            AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+                            AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
+                        }
+                        PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+
+
+
+
+                        if (fault == 1)
+                        {
+                            estado = fault_mode;
+                        }
+
+                        if ((vdc > 528)&(fault == 0))
                         {
                             estado = normal_mode;
                         }
@@ -440,6 +479,21 @@ void main(void)
                     case normal_mode:
                         sw1 = 1;
                         sw2 = 1;
+
+
+
+//                        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag
+                        // Revisa si ocurrió overflow
+                        //
+                        if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+                        {
+                            AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+                            AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
+                        }
+                        PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+
+
+
                         if (DmaClaSrcSelRegs.CLA1TASKSRCSEL2.bit.TASK7 == 0)
                         {
                             EALLOW;
@@ -447,33 +501,63 @@ void main(void)
                             DmaClaSrcSelRegs.CLA1TASKSRCSEL2.bit.TASK7 = 1;
                             EDIS;
                         }
-                        if (boton_2 == 1)
+                        if (fault == 1)
+                        {
+                            estado = fault_mode;
+                        }
+                        if ((boton_2 == 1)&(fault == 0))
                         {
                             estado = apagado;
                             boton_2 = 0;
-                            contador = 0;
+                            EALLOW;
+                            DmaClaSrcSelRegs.CLA1TASKSRCSEL2.bit.TASK7 = 0;
+                            EDIS;
+                        }
                     break;
                     case apagado:
                         sw1 = 0;
                         sw2 = 0;
-                        DELAY_US(5000000);
+                        DELAY_US(1000000); //                        DELAY_US(5000000);
                         estado = idle;
                     break;
+                    case fault_mode:
+
+
+//                        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag
+                        // Revisa si ocurrió overflow
+                        //
+                        if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+                        {
+                            AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+                            AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
+                        }
+                        PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+
+
+                        if (DmaClaSrcSelRegs.CLA1TASKSRCSEL1.bit.TASK1 == 0)
+                        {
+                            EALLOW;
+                            DmaClaSrcSelRegs.CLA1TASKSRCSEL1.bit.TASK1 = 1;
+                            DmaClaSrcSelRegs.CLA1TASKSRCSEL1.bit.TASK2 = 0;
+                            DmaClaSrcSelRegs.CLA1TASKSRCSEL2.bit.TASK7 = 0;
+                            EDIS;
+                        }
+
+                        if (fault == 0)
+                        {
+                            estado = apagado;
+                            EALLOW;
+                            DmaClaSrcSelRegs.CLA1TASKSRCSEL1.bit.TASK1 = 0;
+                            EDIS;
+                        }
+                    break;
+
                     default:
                     break;
-            }
-                    if (contador < 0xFFFF)
-                    {
-                        contador++;
-                    }
-                    else
-                    {
-                        contador = 0;
-                    }
+
             }
         }
 }
-
 
 
 
@@ -624,8 +708,10 @@ void CLA_initCpu1Cla1(void)
     //
 //    Cla1Regs.MCTL.bit.IACKE = 1;
 //    Cla1Regs.MIER.all = (M_INT8 | M_INT7| M_INT6| M_INT5| M_INT4| M_INT3| M_INT2| M_INT1);
+    Cla1Regs.MIER.bit.INT1 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
     Cla1Regs.MIER.bit.INT2 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
     Cla1Regs.MIER.bit.INT7 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
+
 
     //
     // Configure the vectors for the end-of-task interrupt for all
@@ -959,7 +1045,32 @@ void SetupSOC(Uint16 soc, Uint16 channel, Uint16 acqps, Uint16 trigsel)
 //
 __interrupt void cla1Isr1 ()
 {
-    asm(" ESTOP0");
+//    asm(" ESTOP0");
+    AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //make sure INT1 flag is cleared
+    if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+    {
+        AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+    }
+    PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+    // Read the CLA_ADC value and put it in the
+    // AdcFiltBuf buffer
+    //
+    for (i = 0; i < 7; i++)
+    {
+        AdcBuf[i+7*SampleCount] = adc_read[i];
+    }
+
+    //
+    // Make sure that the buffer does not overflow
+    // the buffer size.  If it is larger than ADC_BUF_LEN
+    // then rewind back to the sample 0
+    //
+    SampleCount++;
+    if( SampleCount == 10 )
+    {
+        SampleCount = 0;
+        fault = 0;
+    }
 }
 
 //
@@ -991,7 +1102,6 @@ __interrupt void cla1Isr2 ()
     if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
     {
         AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
-//        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
     }
     PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
 

@@ -20,7 +20,9 @@ extern "C" {
 //
 // Defines
 //
-#define FILTER_LEN    5
+#define FILTER_LEN      7
+#define ADC_BUF_LEN     70
+
 //
 // Globals
 //
@@ -31,6 +33,8 @@ extern "C" {
 #define pre_charge      3
 #define normal_mode     4
 #define apagado         5
+#define fault_mode      6
+extern float adc_read[7];
 //cambio de estados
 //#define boton_1         1
 //#define boton_2         0

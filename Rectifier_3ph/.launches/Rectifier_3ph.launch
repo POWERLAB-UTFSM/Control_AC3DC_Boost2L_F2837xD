@@ -4,7 +4,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="${build_artifact:Rectifier_3ph}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="Rectifier_3ph"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:Rectifier_3ph}"/>
-<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="C:\Users\Matias_L\git\repository\Rectifier_3ph\CPU1_RAM\Rectifier_3ph.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="C:\Users\Matias_L\git\Control_AC3DC_Boost2L_F2837xD\Rectifier_3ph\CPU1_RAM\Rectifier_3ph.out"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/Rectifier_3ph"/>
 </listAttribute>
