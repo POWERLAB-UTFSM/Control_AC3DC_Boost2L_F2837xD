@@ -11,133 +11,69 @@
 #include <stdint.h>
 #include <CLAmath.h>
 //
-// Defines
-//
-//
-// Globals
-//
-// Note that the globals defined in the .cla source are global to the cla source
-// file.  i.e. they may be shared across tasks. All of the data shared between
-// the CLA and the C28x CPU must be defined in the C (or C++) code, and not the
-// CLA code.
-//
-//
-// Function Definitions
-//
 //Task 1
 __interrupt void Cla1Task1 (void)
 {
     __mdebugstop();
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;
-      vdc  = 740.0;
-      vg_a = 1.0;
-      vg_b = 2.0;
-      vg_c = 3.0;
-      ig_a = 4.0;
-      ig_b = 5.0;
-      ig_c = 6.0;
-//      vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-//      vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-//      vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-//      vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-//      ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-//      ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-//      ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-//-------------------------------------------//
 
-      adc_read[0] = vg_a;
-      adc_read[1] = vg_b;
-      adc_read[2] = vg_c;
-      adc_read[3] = ig_a;
-      adc_read[4] = ig_b;
-      adc_read[5] = ig_c;
-      adc_read[6] = vdc;
+    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
+    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
+    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
+    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
+    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+//-------------------------------------------//
+    adc_read[0] = vg_a;
+    adc_read[1] = vg_b;
+    adc_read[2] = vg_c;
+    adc_read[3] = ig_a;
+    adc_read[4] = ig_b;
+    adc_read[5] = ig_c;
+    adc_read[6] = vdc;
 }
 
 __interrupt void Cla1Task2 (void)
 {
     __mdebugstop();
-//    {
-//    asm (" MSETFLG LVF=0");
-//    }
-
-//-----Variables-para-reducir-operaciones----//
-    float raiz_de_3, theta;
-    raiz_de_3 = CLAsqrt(3);
-    theta = 3.141592/4;
-//-------------------------------------------//
 //------------Lectura-de-variables-----------//
-    float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;
-//      vdc  = 740.0;
-//      vg_a = 1.0;
-//      vg_b = 2.0;
-//      vg_c = 3.0;
-//      ig_a = 1.0;
-//      ig_b = 2.0;
-//      ig_c = 3.0;
-      vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-      vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-      vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-      vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-      ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-      ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-      ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+    float vg_a, vg_b, vg_c;
+
+    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
-    float vg_alfa, vg_beta, ig_alfa, ig_beta;
+    float vg_alfa, vg_beta;
 
     vg_alfa = (2./3)*vg_a - (1./3)*vg_b - (1./3)*vg_c;
     vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
-    ig_alfa = (2./3)*ig_a - (1./3)*ig_b - (1./3)*ig_c;
-    ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
 //-------------------------------------------//
 //-----------transf_alfa-beta-a-dq-----------//
-    float vg_d, vg_q, ig_d, ig_q, cos_theta, sin_theta;
+    float vg_q, cos_theta, sin_theta;
+
     cos_theta = CLAcos(theta_l);
     sin_theta = CLAsin(theta_l);
-//    vg_d = 0;
-//    vg_q = 0;
-//    ig_d = 0;
-//    ig_q = 0;
-    vg_d    =  cos_theta*vg_alfa + sin_theta*vg_beta;
     vg_q    = -sin_theta*vg_alfa + cos_theta*vg_beta;
-    ig_d    =  cos_theta*ig_alfa + sin_theta*ig_beta;
-    ig_q    = -sin_theta*ig_alfa + cos_theta*ig_beta;
-//    Res = vg_d+vg_q+ig_d+ig_q;
 //-------------------------------------------//
 //-------------Sincronización_PLL------------//
     float actuac, prueba;
 
     actuac = integrador_l*ki_pll + vg_q*kp_pll + 2*pi*f;
-    integrador_g = h_sample*vg_q+ integrador_ant_l;  //   integrador
+    integrador_g = h_sample*vg_q+ integrador_ant_l;     //integrador
     prueba = h_sample*actuac + theta_ant_l;
 
         if (prueba >= lim_up_pll)
             prueba = prueba - lim_up_pll;//% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
 
     theta_g = prueba;
-
-    a1 = actuac;
-    a2 = integrador_g;
-    a3 = prueba;
-    a4 = theta_l;
-    a5 = integrador_l;
-    a6 = integrador_ant_g;
-    a7 = theta_ant_g;
 //-------------------------------------------//
 //----------actualizacion-variables----------//
     theta_ant_g      = theta_g;
     integrador_ant_g = integrador_g;
 //-------------------------------------------//
-//a1 = vg_d;
-//a2 = vg_q1;
-//a3 = i;
-
-//    {
-//        asm (" MSETFLG LVF=0");
-//        asm (" MSETFLG NF=0");
-//    }
 }
 
 __interrupt void Cla1Task3 (void)
@@ -163,76 +99,34 @@ __interrupt void Cla1Task6 (void)
 __interrupt void Cla1Task7 (void)
 {
     __mdebugstop();
-//    {
-//    asm (" MSETFLG LVF=0");
-//    }
-//    float A1, A2, A3, A4, A5;
-//    A1 = 25;
-//    A2 = 31;
-//    A3 = 44;
-//    A4 = 100;
-//    A5 = (float)(AdcaResultRegs.ADCRESULT0);
-//    //Res = (A1 + A2 + A3 + A4)*100 + A5;
-//    voltFilt = A5*500/4095;
-
-//-----Variables-para-reducir-operaciones----//
-    float raiz_de_3, theta;
-    raiz_de_3 = CLAsqrt(3);
-    theta = 3.141592/4;
-//    theta = (float)(AdcaResultRegs.ADCRESULT0)*pi/4095;
-//    Res = CLAcos(theta);
-//    salida_prueba = A5;
-//-------------------------------------------//
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;
-//      vdc  = 740.0;
-//      vg_a = 1.0;
-//      vg_b = 2.0;
-//      vg_c = 3.0;
-//      ig_a = 1.0;
-//      ig_b = 2.0;
-//      ig_c = 3.0;
-      vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-      vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-      vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-      vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-      ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-      ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-      ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-//      a1 = vdc;
-//      a2 = vg_a;
-//      a3 = vg_b;
-//      a4 = vg_c;
-//      a5 = ig_a;
-//      a6 = ig_b;
-//      a7 = ig_c;
+
+    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
+    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
+    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
+    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
+    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
-      float vg_alfa, vg_beta, ig_alfa, ig_beta;
+    float vg_alfa, vg_beta, ig_alfa, ig_beta;
 
-      vg_alfa = (2./3)*vg_a - (1./3)*vg_b - (1./3)*vg_c;
-      vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
-      ig_alfa = (2./3)*ig_a - (1./3)*ig_b - (1./3)*ig_c;
-      ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
-
-//      vg_alfa = 1;
-//      vg_beta = 2;
-//      ig_alfa = 1;
-//      ig_beta = 2;
+    vg_alfa = (2./3)*vg_a - (1./3)*vg_b - (1./3)*vg_c;
+    vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
+    ig_alfa = (2./3)*ig_a - (1./3)*ig_b - (1./3)*ig_c;
+    ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
 //-------------------------------------------//
 //-----------transf_alfa-beta-a-dq-----------//
     float vg_d, vg_q, ig_d, ig_q, cos_theta, sin_theta;
-    cos_theta = CLAcos(theta);
-    sin_theta = CLAsin(theta);
-//    vg_d = 0;
-//    vg_q = 0;
-//    ig_d = 0;
-//    ig_q = 0;
+
+    cos_theta = CLAcos(theta_l);
+    sin_theta = CLAsin(theta_l);
     vg_d    =  cos_theta*vg_alfa + sin_theta*vg_beta;
     vg_q    = -sin_theta*vg_alfa + cos_theta*vg_beta;
     ig_d    =  cos_theta*ig_alfa + sin_theta*ig_beta;
     ig_q    = -sin_theta*ig_alfa + cos_theta*ig_beta;
-//    Res = vg_d+vg_q+ig_d+ig_q;
 //-------------------------------------------//
 //-------------Sincronización_PLL------------//
     float actuac, prueba;
@@ -242,20 +136,13 @@ __interrupt void Cla1Task7 (void)
     prueba = h_sample*actuac + theta_ant_l;
 
         if (prueba >= lim_up_pll)
-            prueba = prueba - lim_up_pll;//% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
-
+        {
+            prueba = prueba - lim_up_pll;            //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
+        }
     theta_g = prueba;
-//    a1 = actuac;
-//    a2 = integrador_g;
-//    a3 = prueba;
-//    a4 = theta_l;
-//    a5 = integrador_l;
-//    a6 = integrador_ant_g;
-//    a7 = theta_ant_g;
 //-------------------------------------------//
 //----------Controlador-de-voltaje-----------//
     float err_v, u_v, id_ref;
-//    float aux;
 
     err_v   = vdc_ref*vdc_ref - vdc*vdc;
     u_v     = KNO_v*(err_v - x_v_l);
@@ -269,9 +156,6 @@ __interrupt void Cla1Task7 (void)
         }
     x_v_g     = PIAWU_N1_v*u_v + PIAWU_D1_v*x_ant_v_l;
     id_ref = u_v - kpv1*vdc*vdc;
-//    salida_prueba = id_ref;
-//    Res = x_v_g;
-//    Res = u_v;
 //-------------------------------------------//
 //---------Controlador-de-corriente-d--------//
     float err_i_d, u_id, v_conv_d;
@@ -288,9 +172,6 @@ __interrupt void Cla1Task7 (void)
          }
     x_id_g     = PIAWU_N1_i*u_id + PIAWU_D1_i*x_ant_id_l;
     v_conv_d = vg_d + ig_q*2*pi*f*L - u_id;
-
-//    salida_prueba = x_id_g;
-//    Res = v_conv_d;
 //-------------------------------------------//
 //---------Controlador-de-corriente-q--------//
     float err_i_q, u_iq, v_conv_q;
@@ -307,7 +188,6 @@ __interrupt void Cla1Task7 (void)
          }
     x_iq_g     = PIAWU_N1_i*u_iq + PIAWU_D1_i*x_ant_iq_l;
     v_conv_q = vg_q - ig_d*2*pi*f*L - u_iq;
-
 //-------------------------------------------//
 //----------actualizacion-variables----------//
     theta_ant_g      = theta_g;         //pll
@@ -321,20 +201,15 @@ __interrupt void Cla1Task7 (void)
 //-------------------------------------------//
 //--------------dq-a-alpha_beta--------------//
     float v_conv_alfa, v_conv_beta;
+
     v_conv_alfa = cos_theta*v_conv_d - sin_theta*v_conv_q;
     v_conv_beta = sin_theta*v_conv_d + cos_theta*v_conv_q;
 //-------------------------------------------//
 //--------------alpha_beta-a-abc-------------//
-    float v_conv_a, v_conv_b, v_conv_c;
-    v_conv_a = ( v_conv_alfa)/(vdc/2);
-    v_conv_b = (-(1./2)*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/(vdc/2);
-    v_conv_c = (-(1./2)*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/(vdc/2);
+    v_conv_a = 2*v_conv_alfa/vdc;
+    v_conv_b = 2*(-(1./2)*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
+    v_conv_c = 2*(-(1./2)*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
 //-------------------------------------------//
-
-//    {
-//        asm (" MSETFLG LVF=0");
-//        asm (" MSETFLG NF=0");
-//    }
 }
 
 __interrupt void Cla1Task8 (void)

@@ -39,9 +39,7 @@ extern float adc_read[7];
 //#define boton_1         1
 //#define boton_2         0
 //-------------------------------------------//
-//
-//Task 1 (ASM) Variables
-//
+
 //------------Variables-de-prueba------------//
 extern float voltFilt;
 extern float Num,Den; //A/B user input at the C28x side
@@ -61,7 +59,7 @@ extern float a7;
 #define f           50.0
 #define L           0.00005 // (500e-6)
 #define h_sample    0.00002 // (1/50k)
-
+#define raiz_de_3   1.73205
 //-------------------------------------------//
 
 //---------------variables-pll---------------//
@@ -81,13 +79,6 @@ extern float integrador_g;
 //-------------------------------------------//
 
 //----------Controlador-de-voltaje-----------//
-//extern Uint16 vdc_ref;
-//extern float MAX_ACT_v;
-//extern float MIN_ACT_v;
-//extern float PIAWU_D1_v;
-//extern float PIAWU_N1_v;
-//extern float KNO_v;
-//extern float x_ant_v;
 
 #define kpv1         0.000019
 
@@ -131,43 +122,10 @@ extern float x_iq_g;
 
 //-------------------------------------------//
 //--------------alpha_beta-a-abc-------------//
-
+extern float v_conv_a;
+extern float v_conv_b;
+extern float v_conv_c;
 //-------------------------------------------//
-
-
-
-//
-//Task 2 (ASM) Variables
-//
-
-//
-//Task 3 (ASM) Variables
-//
-
-//
-//Task 4 (ASM) Variables
-//
-
-//
-//Task 5 (ASM) Variables
-//
-
-//
-//Task 6 (ASM) Variables
-//
-
-//
-//Task 7 (ASM) Variables
-//
-
-//
-//Task 8 (ASM) Variables
-//
-
-//
-//Common (ASM) Variables
-//
-
 //
 // Function Prototypes
 //
@@ -188,9 +146,7 @@ __interrupt void Cla1Task8();
 }
 #endif // extern "C"
 
-//#endif //end of _CLA_ADC_FIR32_SHARED_H_ definition
 #endif /* TASK_FILE_H_ */
-
 //
 // End of file
 //
