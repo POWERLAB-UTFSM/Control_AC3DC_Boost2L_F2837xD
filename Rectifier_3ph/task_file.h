@@ -52,6 +52,7 @@ extern float a4;
 extern float a5;
 extern float a6;
 extern float a7;
+extern float vect[6];
 //-------------------------------------------//
 
 //-------------Variables-generales-----------//
@@ -60,12 +61,14 @@ extern float a7;
 #define L           0.00005 // (500e-6)
 #define h_sample    0.00002 // (1/50k)
 #define raiz_de_3   1.73205
+#define uno_div_3     0.33334
+#define dos_div_3     0.66667
 //-------------------------------------------//
 
 //---------------variables-pll---------------//
 #define kp_pll       8.7827
 #define ki_pll       78956.83
-#define lim_up_pll  6.283184
+#define lim_up_pll   6.283184
 
 extern float theta_l;
 extern float theta_g;

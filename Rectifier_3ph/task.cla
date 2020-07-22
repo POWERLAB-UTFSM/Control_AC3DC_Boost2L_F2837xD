@@ -48,7 +48,7 @@ __interrupt void Cla1Task2 (void)
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta;
 
-    vg_alfa = (2./3)*vg_a - (1./3)*vg_b - (1./3)*vg_c;
+    vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
     vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
 //-------------------------------------------//
 //-----------transf_alfa-beta-a-dq-----------//
@@ -102,20 +102,41 @@ __interrupt void Cla1Task7 (void)
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;
 
-    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+//    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
+//    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+//    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+//    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
+//    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
+//    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
+//    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+
+//    vdc  = 749.1;
+//    vg_a = -283.9;
+//    vg_b = 31.8;
+//    vg_c = 252;
+    ig_a = -9.82;
+    ig_b = 1.16;
+    ig_c = 8.65;
+
+    vdc  = 749.1;
+    vg_a = vect[0];
+    vg_b = vect[1];
+    vg_c = vect[2];
+//    ig_a = vect[3];
+//    ig_b = vect[4];
+//    ig_c = vect[5];
+
+
+
+
+
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta, ig_alfa, ig_beta;
 
-    vg_alfa = (2./3)*vg_a - (1./3)*vg_b - (1./3)*vg_c;
+    vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
     vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
-    ig_alfa = (2./3)*ig_a - (1./3)*ig_b - (1./3)*ig_c;
+    ig_alfa = dos_div_3*ig_a - uno_div_3*ig_b - uno_div_3*ig_c;
     ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
 //-------------------------------------------//
 //-----------transf_alfa-beta-a-dq-----------//
@@ -207,9 +228,13 @@ __interrupt void Cla1Task7 (void)
 //-------------------------------------------//
 //--------------alpha_beta-a-abc-------------//
     v_conv_a = 2*v_conv_alfa/vdc;
-    v_conv_b = 2*(-(1./2)*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
-    v_conv_c = 2*(-(1./2)*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
+    v_conv_b = 2*(-0.5*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
+    v_conv_c = 2*(-0.5*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
 //-------------------------------------------//
+
+    a1 = vg_d;
+    a2 = vg_q;
+    a3 = CLAcos(3.14);
 }
 
 __interrupt void Cla1Task8 (void)
