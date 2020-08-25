@@ -22,6 +22,7 @@ extern "C" {
 //
 #define FILTER_LEN      7
 #define ADC_BUF_LEN     70
+#define ADC_BUF_PREV    48
 
 //
 // Globals
@@ -40,6 +41,18 @@ extern float adc_read[7];
 //#define boton_2         0
 //-------------------------------------------//
 
+//-------------Variables-fallas--------------//
+#define vg_d_min     280
+#define vg_q_max     10
+#define vg_q_min    -10
+#define vdc_max      850
+#define vdc_charged  530
+#define v_phase_max  5
+#define v_phase_min -5
+#define pot_max      5500
+
+//-------------------------------------------//
+
 //------------Variables-de-prueba------------//
 extern float voltFilt;
 extern float Num,Den; //A/B user input at the C28x side
@@ -52,6 +65,9 @@ extern float a4;
 extern float a5;
 extern float a6;
 extern float a7;
+extern float a8;
+extern float a9;
+extern float a10;
 extern float vect[6];
 //-------------------------------------------//
 
@@ -61,12 +77,12 @@ extern float vect[6];
 #define L           0.00005 // (500e-6)
 #define h_sample    0.00002 // (1/50k)
 #define raiz_de_3   1.73205
-#define uno_div_3     0.33334
-#define dos_div_3     0.66667
+#define uno_div_3   0.33334
+#define dos_div_3   0.66667
 //-------------------------------------------//
 
 //---------------variables-pll---------------//
-#define kp_pll       8.7827
+#define kp_pll       8.78568
 #define ki_pll       78956.83
 #define lim_up_pll   6.283184
 
