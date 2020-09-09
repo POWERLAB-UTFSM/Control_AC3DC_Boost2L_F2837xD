@@ -150,7 +150,7 @@
 	<variableList>
 		<variable>
 			<name>CLAMATH_ROOT</name>
-			<value>file:/C:/ti2/c2000Ware_03_02/C2000Ware_3_02_00_00/libraries/math/CLAmath/c28</value>
+			<value>file:/C:/ti/c2000/C2000Ware_3_02_00_00/libraries/math/CLAmath/c28</value>
 		</variable>
 		<variable>
 			<name>INSTALLROOT_F2837XD</name>
@@ -158,7 +158,7 @@
 		</variable>
 		<variable>
 			<name>ORIGINAL_PROJECT_ROOT</name>
-			<value>file:/C:/ti2/c2000Ware_03_02/C2000Ware_3_02_00_00/device_support/f2837xd/examples/cpu1/cla_adc_fir32/cpu01/ccs</value>
+			<value>file:/C:/ti/c2000/C2000Ware_3_02_00_00/device_support/f2837xd/examples/cpu1/cla_adc_fir32/cpu01/ccs</value>
 		</variable>
 	</variableList>
 </projectDescription>
