@@ -1371,7 +1371,7 @@ corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
 //    {
 //        theta_buff[i] = theta_l;
 //        alfa_buff[i] = a2;
-//        i++;
+//        i++;  dddd
 //    }
 //    else
 //    {
