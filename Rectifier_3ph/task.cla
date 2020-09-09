@@ -113,6 +113,277 @@ __interrupt void Cla1Task5 (void)
 __interrupt void Cla1Task6 (void)
 {
 
+    __mdebugstop();
+//------------Lectura-de-variables-----------//
+    float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
+
+    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
+    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
+    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
+    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
+    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
+    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
+    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
+    i_out= (float)(AdcbResultRegs.ADCRESULT8);
+
+    vdc  = 0;
+//-------------------------------------------//
+//----------transf_abc-a-alfa-beta-----------//
+    float vg_alfa, vg_beta, ig_alfa, ig_beta;
+
+    vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
+    vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
+    ig_alfa = dos_div_3*ig_a - uno_div_3*ig_b - uno_div_3*ig_c;
+    ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
+//    float lectura, modificacion;
+//
+//    lectura = (float)(AdcaResultRegs.ADCRESULT1);
+//    modificacion = lectura*0.00036634-0.2873;   // Curva para ADC-A1, con Escalón 0-1, de 0.5 a 2.5V
+//    a1 = modificacion;
+//    a2 = u_v;
+
+    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
+    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
+
+    if (vg_alfa > 311.13)
+    {
+        vg_alfa = 311.12;
+    }
+    else if (vg_alfa < -311.13)
+    {
+        vg_alfa = -311.12;
+    }
+    else
+    {
+    }
+
+    if (vg_beta > 311.13)
+    {
+        vg_beta = 311.12;
+    }
+    else if (vg_beta < -311.13)
+    {
+        vg_beta = -311.12;
+    }
+    else
+    {
+    }
+
+//-------------------------------------------//
+//----------alfa-beta-a-dq-mas-menos---------//
+    float vg_d, vg_q, ig_d, ig_q;
+    // datos para DDSRF-PLL
+
+    float cos_theta_ddsrf, sin_theta_ddsrf, cos_mas_2_theta, sen_mas_2_theta, cos_men_2_theta, sin_men_2_theta;
+
+    cos_theta_ddsrf = CLAcos(   theta_ddsrf_l);
+    sin_theta_ddsrf = CLAsin(   theta_ddsrf_l);
+    cos_mas_2_theta = CLAcos( 2*theta_ddsrf_l);
+    sen_mas_2_theta = CLAsin( 2*theta_ddsrf_l);
+    cos_men_2_theta = CLAcos(-2*theta_ddsrf_l);
+    sin_men_2_theta = CLAsin(-2*theta_ddsrf_l);
+
+
+    vg_d    =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q    = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+    ig_d    =  cos_theta_ddsrf*ig_alfa + sin_theta_ddsrf*ig_beta;
+    ig_q    = -sin_theta_ddsrf*ig_alfa + cos_theta_ddsrf*ig_beta;
+
+
+    float vg_d_men, vg_q_men, vg_d_mas, vg_q_mas, vg_d_men_ref, vg_q_men_ref, vg_d_mas_ref, vg_q_mas_ref;
+
+    vg_d_men =  cos_theta_ddsrf*vg_alfa - sin_theta_ddsrf*vg_beta;
+    vg_q_men =  sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+    vg_d_mas =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q_mas = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+//    float vg_d_men_prom, vg_q_men_prom, vg_d_mas_prom, vg_q_mas_prom;
+
+//    vg_d_men_prom_l = vg_d_men_prom_g; // las l cpu->cla, las g cla->cpu
+//    vg_q_men_prom_l = vg_q_men_prom_g;
+//    vg_d_mas_prom_l = vg_d_mas_prom_g;
+//    vg_q_mas_prom_l = vg_q_mas_prom_g;
+//
+//    vg_d_men_ref_ant_l = vg_d_men_ref_ant_g;
+//    vg_d_men_prom_ant_l = vg_d_men_prom_ant_g;
+//    vg_q_men_ref_ant_l = vg_q_men_ref_ant_g;
+//    vg_q_men_prom_ant_l = vg_q_men_prom_ant_g;
+//
+//    vg_d_mas_ref_ant_l = vg_d_mas_ref_ant_g;
+//    vg_d_mas_prom_ant_l = vg_d_mas_prom_ant_g;
+//    vg_q_mas_ref_ant_l = vg_q_mas_ref_ant_g;
+//    vg_q_mas_prom_ant_l = vg_q_mas_prom_ant_g;
+//
+//    integr_ddsrf_l = integr_ddsrf_g
+//    integr_ddsrf_ant_l = integr_ddsrf_ant_g;
+//    theta_ddsrf_ant_l = theta_ddsrf_ant_g;
+//    theta_ddsrf_l = theta_ddsrf_g;
+
+
+    vg_d_men_ref = vg_d_men - ( cos_men_2_theta*vg_d_mas_prom_l + sin_men_2_theta*vg_q_mas_prom_l);
+    vg_q_men_ref = vg_q_men - (-sin_men_2_theta*vg_d_mas_prom_l + cos_men_2_theta*vg_q_mas_prom_l);
+
+    vg_d_mas_ref = vg_d_mas - ( cos_mas_2_theta*vg_d_men_prom_l + sen_mas_2_theta*vg_q_men_prom_l);
+    vg_q_mas_ref = vg_q_mas - (-sen_mas_2_theta*vg_d_men_prom_l + cos_mas_2_theta*vg_q_men_prom_l);
+
+    // LPF
+
+//    float vg_d_men_ref_ant, vg_q_men_ref_ant, vg_d_mas_ref_ant, vg_q_mas_ref_ant;
+//    float vg_d_men_prom_ant, vg_q_men_prom_ant, vg_d_mas_prom_ant, vg_q_mas_prom_ant;
+
+    vg_d_men_prom_g = vg_d_men_ref_ant_l*omega_lpf*h_sample + vg_d_men_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_men_prom_g = vg_q_men_ref_ant_l*omega_lpf*h_sample + vg_q_men_prom_ant_l*(1-omega_lpf*h_sample);
+
+    vg_d_mas_prom_g = vg_d_mas_ref_ant_l*omega_lpf*h_sample + vg_d_mas_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_mas_prom_g = vg_q_mas_ref_ant_l*omega_lpf*h_sample + vg_q_mas_prom_ant_l*(1-omega_lpf*h_sample);
+
+
+
+
+//-------------------------------------------//
+//-------------Sincronización_PLL------------//
+    float actuac, prueba;
+
+    float actuac_ddsrf, theta_ddsrf_prueba;
+
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
+    theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
+    if (theta_ddsrf_prueba >= lim_up_pll)
+    {
+        theta_ddsrf_prueba = theta_ddsrf_prueba - lim_up_pll;   //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
+    }
+    theta_ddsrf_g = theta_ddsrf_prueba;
+
+//    a1 = vg_alfa;
+//    a2 = vg_beta;
+//    a3 = theta_ddsrf_prueba;
+    a1 = vg_d_mas;
+    a2 = vg_q_mas;
+    a3 = theta_ddsrf_prueba;
+//    a1 = vg_alfa;
+//    a2 = vg_beta;
+//    a3 = prueba;
+//-------------------------------------------//
+
+    actuac = integrador_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    integrador_g = h_sample*vg_q + integrador_ant_l;  //   integrador
+    prueba = h_sample*actuac + theta_ant_l;
+        if (prueba >= lim_up_pll)
+        {
+            prueba = prueba - lim_up_pll;            //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
+        }
+    theta_g = prueba;
+
+//-------------------------------------------//
+//----------Controlador-de-voltaje-----------//
+    float err_v, u_v, id_ref;
+
+    err_v   = vdc_ref*vdc_ref - vdc*vdc;
+    u_v     = KNO_v*(err_v - x_v_l);
+        if (u_v > MAX_ACT_v)
+        {
+        u_v = MAX_ACT_v;
+        }
+    else if (u_v < MIN_ACT_v)
+        {
+    u_v = MIN_ACT_v;
+        }
+    x_v_g     = PIAWU_N1_v*u_v + PIAWU_D1_v*x_ant_v_l;
+    id_ref = u_v - kpv1*vdc*vdc;
+
+//-------------------------------------------//
+//---------Controlador-de-corriente-d--------//
+    float err_i_d, u_id, v_conv_d;
+
+    err_i_d = id_ref - ig_d;
+    u_id = KN0_i*(err_i_d - x_id_l);
+    if (u_id > MAX_ACT_i)
+        {
+         u_id = MAX_ACT_i;
+        }
+    else if (u_id < MIN_ACT_i)
+         {
+          u_id = MIN_ACT_i;
+         }
+    x_id_g     = PIAWU_N1_i*u_id + PIAWU_D1_i*x_ant_id_l;
+    v_conv_d = vg_d + ig_q*2*pi*f*L - u_id;
+
+//-------------------------------------------//
+//---------Controlador-de-corriente-q--------//
+
+    float err_i_q, u_iq, v_conv_q;
+
+    err_i_q  = iq_ref - ig_q;
+    u_iq     = KN0_i*(err_i_q - x_iq_l);
+    if (u_iq > MAX_ACT_i)
+        {
+            u_iq = MAX_ACT_i;
+        }
+     else if (u_iq < MIN_ACT_i)
+         {
+             u_iq = MIN_ACT_i;
+         }
+    x_iq_g     = PIAWU_N1_i*u_iq + PIAWU_D1_i*x_ant_iq_l;
+    v_conv_q = vg_q - ig_d*2*pi*f*L - u_iq;
+
+//-------------------------------------------//
+//----------actualizacion-variables----------//
+    x_ant_v_g = x_v_g;                  //controlador de voltaje
+
+    x_ant_id_g = x_id_g;                //controlador i_d
+
+    x_ant_iq_g = x_iq_g;                //controlador i_q
+//----------Actualizacion_PLL--------------//
+
+    vg_d_men_ref_ant_g  = vg_d_men_ref;
+    vg_d_men_prom_ant_g = vg_d_men_prom_g;
+
+    vg_q_men_ref_ant_g  = vg_q_men_ref;
+    vg_q_men_prom_ant_g = vg_q_men_prom_g;
+
+    vg_d_mas_ref_ant_g  = vg_d_mas_ref;
+    vg_d_mas_prom_ant_g = vg_d_mas_prom_g;
+
+    vg_q_mas_ref_ant_g  = vg_q_mas_ref;
+    vg_q_mas_prom_ant_g = vg_q_mas_prom_g;
+
+    // PI del DDSRF-PLL
+    integr_ddsrf_ant_g = integr_ddsrf_g;
+    theta_ddsrf_ant_g  = theta_ddsrf_g;
+//-------------------------------------------//
+//-------------------------------------------//
+//--------------dq-a-alpha_beta--------------//
+    float v_conv_alfa, v_conv_beta;
+
+    v_conv_alfa = cos_theta_ddsrf*v_conv_d - sin_theta_ddsrf*v_conv_q;
+    v_conv_beta = sin_theta_ddsrf*v_conv_d + cos_theta_ddsrf*v_conv_q;
+//-------------------------------------------//
+//--------------alpha_beta-a-abc-------------//
+    v_conv_a = 2*v_conv_alfa/vdc;
+    v_conv_b = 2*(-0.5*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
+    v_conv_c = 2*(-0.5*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
+//-------------------------------------------//
+//
+////    a1 = vg_alfa;
+////    a2 = vg_beta;
+////    a3 = vg_d;
+////    a4 = vg_q;
+//     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
+//    a1 = vdc;
+//    a2 = vg_a;
+//    a3 = vg_b;
+//    a4 = vg_c;
+//    a5 = ig_a;
+//    a6 = ig_b;
+//    a7 = ig_c;
+//    a8 = i_out;
+//    a9 = vg_d;
+//    a10 = vg_q;
+//    a1 = (float)(AdcaResultRegs.ADCRESULT1);
+//    a2 = (float)(AdcaResultRegs.ADCRESULT2);
+
 }
 
 __interrupt void Cla1Task7 (void) // Normal mode
@@ -199,8 +470,8 @@ __interrupt void Cla1Task7 (void) // Normal mode
     else
     {
     }
-    a1 = vg_alfa;
-    a2 = vg_beta;
+//    a1 = vg_alfa;
+//    a2 = vg_beta;
     ig_alfa = dos_div_3*ig_a - uno_div_3*ig_b - uno_div_3*ig_c;
     ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
 //-------------------------------------------//
@@ -226,7 +497,12 @@ __interrupt void Cla1Task7 (void) // Normal mode
             prueba = prueba - lim_up_pll;            //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
         }
     theta_g = prueba;
-
+//    a1 = vg_alfa;
+//    a2 = vg_beta;
+//    a3 = prueba;
+    a1 = vg_d;
+    a2 = vg_q;
+    a3 = prueba;
 //-------------------------------------------//
 //----------Controlador-de-voltaje-----------//
     float err_v, u_v, id_ref;
@@ -307,16 +583,16 @@ __interrupt void Cla1Task7 (void) // Normal mode
 ////    a3 = vg_d;
 ////    a4 = vg_q;
 //     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
-    a1 = vdc;
-    a2 = vg_a;
-    a3 = vg_b;
-    a4 = vg_c;
-    a5 = ig_a;
-    a6 = ig_b;
-    a7 = ig_c;
-    a8 = i_out;
-    a9 = vg_d;
-    a10 = vg_q;
+//    a1 = vdc;
+//    a2 = vg_a;
+//    a3 = vg_b;
+//    a4 = vg_c;
+//    a5 = ig_a;
+//    a6 = ig_b;
+//    a7 = ig_c;
+//    a8 = i_out;
+//    a9 = vg_d;
+//    a10 = vg_q;
 //    a1 = (float)(AdcaResultRegs.ADCRESULT1);
 //    a2 = (float)(AdcaResultRegs.ADCRESULT2);
 }

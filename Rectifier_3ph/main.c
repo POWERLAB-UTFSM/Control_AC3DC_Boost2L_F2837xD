@@ -82,6 +82,7 @@ float a8;
 float a9;
 #pragma DATA_SECTION(a10,"Cla1ToCpuMsgRAM");
 float a10;
+#define BLINKY_LED_GPIO    31
 uint16_t aaa = 0;
 int bbb = 0;
 int ccc = 0;
@@ -108,7 +109,7 @@ float vect [6];
 #pragma DATA_SECTION(adc_read,"Cla1ToCpuMsgRAM");
 float adc_read [7];
 //-------------------------------------------//
-//---------------variables-pll---------------//
+//------------variables-srf-pll--------------//
 #pragma DATA_SECTION(theta_l,"CpuToCla1MsgRAM");
 float theta_l;
 #pragma DATA_SECTION(theta_ant_l,"CpuToCla1MsgRAM");
@@ -127,6 +128,102 @@ float theta_ant_g;
 #pragma DATA_SECTION(integrador_ant_g,"Cla1ToCpuMsgRAM");
 float integrador_ant_g;
 //-------------------------------------------//
+//-----------variables-DDSRFpll--------------//
+#pragma DATA_SECTION(vg_d_men_prom_l,"CpuToCla1MsgRAM");
+float vg_d_men_prom_l;
+#pragma DATA_SECTION(vg_q_men_prom_l,"CpuToCla1MsgRAM");
+float vg_q_men_prom_l;
+#pragma DATA_SECTION(vg_d_mas_prom_l,"CpuToCla1MsgRAM");
+float vg_d_mas_prom_l;
+#pragma DATA_SECTION(vg_q_mas_prom_l,"CpuToCla1MsgRAM");
+float vg_q_mas_prom_l;
+
+#pragma DATA_SECTION(vg_d_men_ref_ant_l,"CpuToCla1MsgRAM");
+float vg_d_men_ref_ant_l;
+#pragma DATA_SECTION(vg_d_men_prom_ant_l,"CpuToCla1MsgRAM");
+float vg_d_men_prom_ant_l;
+#pragma DATA_SECTION(vg_q_men_ref_ant_l,"CpuToCla1MsgRAM");
+float vg_q_men_ref_ant_l;
+#pragma DATA_SECTION(vg_q_men_prom_ant_l,"CpuToCla1MsgRAM");
+float vg_q_men_prom_ant_l;
+
+#pragma DATA_SECTION(vg_d_mas_ref_ant_l,"CpuToCla1MsgRAM");
+float vg_d_mas_ref_ant_l;
+#pragma DATA_SECTION(vg_d_mas_prom_ant_l,"CpuToCla1MsgRAM");
+float vg_d_mas_prom_ant_l;
+#pragma DATA_SECTION(vg_q_mas_ref_ant_l,"CpuToCla1MsgRAM");
+float vg_q_mas_ref_ant_l;
+#pragma DATA_SECTION(vg_q_mas_prom_ant_l,"CpuToCla1MsgRAM");
+float vg_q_mas_prom_ant_l;
+
+#pragma DATA_SECTION(integr_ddsrf_l,"CpuToCla1MsgRAM");
+float integr_ddsrf_l;
+#pragma DATA_SECTION(integr_ddsrf_ant_l,"CpuToCla1MsgRAM");
+float integr_ddsrf_ant_l;
+#pragma DATA_SECTION(theta_ddsrf_ant_l,"CpuToCla1MsgRAM");
+float theta_ddsrf_ant_l;
+#pragma DATA_SECTION(theta_ddsrf_l,"CpuToCla1MsgRAM");
+float theta_ddsrf_l;
+
+
+#pragma DATA_SECTION(vg_d_men_prom_g,"Cla1ToCpuMsgRAM");
+float vg_d_men_prom_g;
+#pragma DATA_SECTION(vg_q_men_prom_g,"Cla1ToCpuMsgRAM");
+float vg_q_men_prom_g;
+#pragma DATA_SECTION(vg_d_mas_prom_g,"Cla1ToCpuMsgRAM");
+float vg_d_mas_prom_g;
+#pragma DATA_SECTION(vg_q_mas_prom_g,"Cla1ToCpuMsgRAM");
+float vg_q_mas_prom_g;
+
+#pragma DATA_SECTION(vg_d_men_ref_ant_g,"Cla1ToCpuMsgRAM");
+float vg_d_men_ref_ant_g;
+#pragma DATA_SECTION(vg_d_men_prom_ant_g,"Cla1ToCpuMsgRAM");
+float vg_d_men_prom_ant_g;
+#pragma DATA_SECTION(vg_q_men_ref_ant_g,"Cla1ToCpuMsgRAM");
+float vg_q_men_ref_ant_g;
+#pragma DATA_SECTION(vg_q_men_prom_ant_g,"Cla1ToCpuMsgRAM");
+float vg_q_men_prom_ant_g;
+
+#pragma DATA_SECTION(vg_d_mas_ref_ant_g,"Cla1ToCpuMsgRAM");
+float vg_d_mas_ref_ant_g;
+#pragma DATA_SECTION(vg_d_mas_prom_ant_g,"Cla1ToCpuMsgRAM");
+float vg_d_mas_prom_ant_g;
+#pragma DATA_SECTION(vg_q_mas_ref_ant_g,"Cla1ToCpuMsgRAM");
+float vg_q_mas_ref_ant_g;
+#pragma DATA_SECTION(vg_q_mas_prom_ant_g,"Cla1ToCpuMsgRAM");
+float vg_q_mas_prom_ant_g;
+
+#pragma DATA_SECTION(integr_ddsrf_g,"Cla1ToCpuMsgRAM");
+float integr_ddsrf_g;
+#pragma DATA_SECTION(integr_ddsrf_ant_g,"Cla1ToCpuMsgRAM");
+float integr_ddsrf_ant_g;
+#pragma DATA_SECTION(theta_ddsrf_ant_g,"Cla1ToCpuMsgRAM");
+float theta_ddsrf_ant_g;
+#pragma DATA_SECTION(theta_ddsrf_g,"Cla1ToCpuMsgRAM");
+float theta_ddsrf_g;
+
+//    vg_d_men_prom_l = vg_d_men_prom_g; // las l cpu->cla, las g cla->cpu
+//    vg_q_men_prom_l = vg_q_men_prom_g;
+//    vg_d_mas_prom_l = vg_d_mas_prom_g;
+//    vg_q_mas_prom_l = vg_q_mas_prom_g;
+//
+//    vg_d_men_ref_ant_l = vg_d_men_ref_ant_g;
+//    vg_d_men_prom_ant_l = vg_d_men_prom_ant_g;
+//    vg_q_men_ref_ant_l = vg_q_men_ref_ant_g;
+//    vg_q_men_prom_ant_l = vg_q_men_prom_ant_g;
+//
+//    vg_d_mas_ref_ant_l = vg_d_mas_ref_ant_g;
+//    vg_d_mas_prom_ant_l = vg_d_mas_prom_ant_g;
+//    vg_q_mas_ref_ant_l = vg_q_mas_ref_ant_g;
+//    vg_q_mas_prom_ant_l = vg_q_mas_prom_ant_g;
+////-------------------------------------------//
+////------------variables-pi-pll---------------//
+//    integr_ddsrf_l = integr_ddsrf_g
+//    integr_ddsrf_ant_l = integr_ddsrf_ant_g;
+//    theta_ddsrf_ant_l = theta_ddsrf_ant_g;
+//    theta_ddsrf_l = theta_ddsrf_g;
+////-------------------------------------------//
+
 //----------Controlador-de-voltaje-----------//
 #pragma DATA_SECTION(x_ant_v_l,"CpuToCla1MsgRAM");
 float x_ant_v_l;
@@ -237,7 +334,14 @@ void main(void)
     InitEPwm2Gpio();
     InitEPwm3Gpio();
     InitEPwm4Gpio();
-//
+
+//  Encendido y apagado de un led
+    InitGpio();
+    GPIO_SetupPinMux(BLINKY_LED_GPIO, GPIO_MUX_CPU1, 0);
+    GPIO_SetupPinOptions(BLINKY_LED_GPIO, GPIO_OUTPUT, GPIO_PUSHPULL);
+
+
+    //
 // Step 3. Clear all interrupts and initialize PIE vector table:
 // Disable CPU interrupts
 //
@@ -333,6 +437,11 @@ void main(void)
     boton_1 = 1;
     while(1)
         {
+
+//        GPIO_WritePin(BLINKY_LED_GPIO, 1);
+////        DELAY_US(1000*500);
+//        Cla1ForceTask6();
+
             switch (estado)
             {
                     case idle:
@@ -596,11 +705,12 @@ void CLA_initCpu1Cla1(void)
     // subset of tasks) by writing to their respective bits in the
     // MIER register
     //
-//    Cla1Regs.MCTL.bit.IACKE = 1;
+    Cla1Regs.MCTL.bit.IACKE = 1;
 //    Cla1Regs.MIER.all = (M_INT8 | M_INT7| M_INT6| M_INT5| M_INT4| M_INT3| M_INT2| M_INT1);
     Cla1Regs.MIER.bit.INT1 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
-    Cla1Regs.MIER.bit.INT2 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
-    Cla1Regs.MIER.bit.INT7 = 1;     // Permite que interrupciones o cpu inicien la tarea 1
+    Cla1Regs.MIER.bit.INT2 = 1;     // Permite que interrupciones o cpu inicien la tarea 2
+    Cla1Regs.MIER.bit.INT6 = 1;     // Permite que interrupciones o cpu inicien la tarea 6
+    Cla1Regs.MIER.bit.INT7 = 1;     // Permite que interrupciones o cpu inicien la tarea 7
 
     //
     // Configure the vectors for the end-of-task interrupt for all
@@ -1067,7 +1177,98 @@ __interrupt void cla1Isr5 ()
 //
 __interrupt void cla1Isr6 ()
 {
-    asm(" ESTOP0");
+//--------------variables-pll----------------//
+    vg_d_men_prom_l = vg_d_men_prom_g; // las l cpu->cla, las g cla->cpu
+    vg_q_men_prom_l = vg_q_men_prom_g;
+    vg_d_mas_prom_l = vg_d_mas_prom_g;
+    vg_q_mas_prom_l = vg_q_mas_prom_g;
+
+    vg_d_men_ref_ant_l = vg_d_men_ref_ant_g;
+    vg_d_men_prom_ant_l = vg_d_men_prom_ant_g;
+    vg_q_men_ref_ant_l = vg_q_men_ref_ant_g;
+    vg_q_men_prom_ant_l = vg_q_men_prom_ant_g;
+
+    vg_d_mas_ref_ant_l = vg_d_mas_ref_ant_g;
+    vg_d_mas_prom_ant_l = vg_d_mas_prom_ant_g;
+    vg_q_mas_ref_ant_l = vg_q_mas_ref_ant_g;
+    vg_q_mas_prom_ant_l = vg_q_mas_prom_ant_g;
+//-------------------------------------------//
+//------------variables-pi-pll---------------//
+    integr_ddsrf_l = integr_ddsrf_g;
+    integr_ddsrf_ant_l = integr_ddsrf_ant_g;
+    theta_ddsrf_ant_l = theta_ddsrf_ant_g;
+    theta_ddsrf_l = theta_ddsrf_g;
+//-------------------------------------------//
+//----------Controlador-de-voltaje-----------//
+    x_ant_v_l = x_ant_v_g;
+    x_v_l     = x_v_g;
+//-------------------------------------------//
+//---------Controlador-de-corriente-d--------//
+    x_ant_id_l = x_ant_id_g;
+    x_id_l     = x_id_g;
+//-------------------------------------------//
+//---------Controlador-de-corriente-q--------//
+    x_ant_iq_l = x_ant_iq_g;
+    x_iq_l     = x_iq_g;
+//-------------------------------------------//
+//---------------variables-pll---------------//
+    vdc   = a1;
+    va    = a2;
+    vb    = a3;
+    vc    = a4;
+    i_out = a8;
+//-------------------------------------------//
+
+    corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
+
+    // Escritura escalada de variables
+    if (aaa <= 2)
+
+    {
+        aaa++;
+    }
+    else
+    {
+        aaa = 0;
+        if (i < largo_theta)
+        {
+            theta_buff[i] = a3;
+            alfa_buff[i]  = a1; //    a1 = vg_d;
+            beta_buff[i]  = a2; //    a2 = vg_q;
+            i++;
+        }
+        else
+        {
+            i = 0;
+        }
+    }
+
+//    if (i < largo_theta)
+//    {
+////        theta_buff[i] = theta_l;
+//        theta_buff[i] = a3;
+//        alfa_buff[i]  = a1; //    a1 = vg_d;
+//        beta_buff[i]  = a2; //    a2 = vg_q;
+//        i++;
+//    }
+//    else
+//    {
+//        i = 0;
+//    }
+
+
+    AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag
+    // Revisa si ocurrió overflow
+    //
+    if(1 == AdcaRegs.ADCINTOVF.bit.ADCINT1)
+    {
+        AdcaRegs.ADCINTOVFCLR.bit.ADCINT1 = 1; // limpia INT1 overflow flag
+        AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; //Re-clear ADCINT flag
+    }
+    PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
+
+    GPIO_WritePin(BLINKY_LED_GPIO, 0);
+
 }
 
 //
@@ -1130,38 +1331,39 @@ corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
 //    if (aaa <= 20)
 
     // Escritura escalada de variables
-//    if (aaa <= 1)
-//
-//    {
-//        aaa++;
-//    }
-//    else
-//    {
-//        aaa = 0;
-//        if (i < largo_theta)
-//        {
-//            theta_buff[i] = a1;
-//            alfa_buff[i]  = a2; //    a1 = vg_d;
-//            beta_buff[i]  = a3; //    a2 = vg_q;
-//            i++;
-//        }
-//        else
-//        {
-//            i = 0;
-//        }
-//    }
+    if (aaa <= 2)
 
-    if (i < largo_theta)
     {
-//        theta_buff[i] = theta_l;
-        alfa_buff[i]  = a1; //    a1 = vg_d;
-        beta_buff[i]  = a2; //    a2 = vg_q;
-        i++;
+        aaa++;
     }
     else
     {
-        i = 0;
+        aaa = 0;
+        if (i < largo_theta)
+        {
+            theta_buff[i] = a3;
+            alfa_buff[i]  = a1; //    a1 = vg_d;
+            beta_buff[i]  = a2; //    a2 = vg_q;
+            i++;
+        }
+        else
+        {
+            i = 0;
+        }
     }
+
+//    if (i < largo_theta)
+//    {
+////        theta_buff[i] = theta_l;
+//        theta_buff[i] = a3;
+//        alfa_buff[i]  = a1; //    a1 = vg_d;
+//        beta_buff[i]  = a2; //    a2 = vg_q;
+//        i++;
+//    }
+//    else
+//    {
+//        i = 0;
+//    }
 
 
 
@@ -1195,6 +1397,7 @@ corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
 //    if (k >=401)
 //    {
 //        k = 0;
+
 //    }
 
 

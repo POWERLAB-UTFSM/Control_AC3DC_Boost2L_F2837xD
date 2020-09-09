@@ -81,7 +81,7 @@ extern float vect[6];
 #define dos_div_3   0.66667
 //-------------------------------------------//
 
-//---------------variables-pll---------------//
+//------------variables-SRF-pll--------------//
 #define kp_pll       8.78568
 #define ki_pll       78956.83
 #define lim_up_pll   6.283184
@@ -94,7 +94,51 @@ extern float integrador_ant_l;
 extern float integrador_ant_g;
 extern float integrador_l;
 extern float integrador_g;
+//-------------------------------------------//
 
+//------------Variables-DDSRF-PLL------------//
+#define omega_lpf 222.1441
+
+extern float vg_d_men_prom_l;
+extern float vg_q_men_prom_l;
+extern float vg_d_mas_prom_l;
+extern float vg_q_mas_prom_l;
+
+extern float vg_d_men_ref_ant_l;
+extern float vg_d_men_prom_ant_l;
+extern float vg_q_men_ref_ant_l;
+extern float vg_q_men_prom_ant_l;
+
+extern float vg_d_mas_ref_ant_l;
+extern float vg_d_mas_prom_ant_l;
+extern float vg_q_mas_ref_ant_l;
+extern float vg_q_mas_prom_ant_l;
+
+extern float integr_ddsrf_l;
+extern float integr_ddsrf_ant_l;
+extern float theta_ddsrf_ant_l;
+extern float theta_ddsrf_l;
+
+
+extern float vg_d_men_prom_g;
+extern float vg_q_men_prom_g;
+extern float vg_d_mas_prom_g;
+extern float vg_q_mas_prom_g;
+
+extern float vg_d_men_ref_ant_g;
+extern float vg_d_men_prom_ant_g;
+extern float vg_q_men_ref_ant_g;
+extern float vg_q_men_prom_ant_g;
+
+extern float vg_d_mas_ref_ant_g;
+extern float vg_d_mas_prom_ant_g;
+extern float vg_q_mas_ref_ant_g;
+extern float vg_q_mas_prom_ant_g;
+
+extern float integr_ddsrf_g;
+extern float integr_ddsrf_ant_g;
+extern float theta_ddsrf_ant_g;
+extern float theta_ddsrf_g;
 //-------------------------------------------//
 
 //----------Controlador-de-voltaje-----------//
