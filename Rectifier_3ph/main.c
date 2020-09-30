@@ -107,7 +107,7 @@ float vect [6];
 //-------------------------------------------//
 //---------------Variables-FSM---------------//
 #pragma DATA_SECTION(adc_read,"Cla1ToCpuMsgRAM");
-float adc_read [7];
+float adc_read [8];
 //-------------------------------------------//
 //------------variables-srf-pll--------------//
 #pragma DATA_SECTION(theta_l,"CpuToCla1MsgRAM");
@@ -763,6 +763,7 @@ void EPWM_initEpwm(void)
     EPwm1Regs.ETPS.bit.SOCAPRD    = 1;    // Genera el pulso en el 1st evento
     EPwm1Regs.ETPS.bit.SOCBPRD    = 1;    // Genera el pulso en el 1st evento
     EPwm1Regs.TBPRD               = 500;  // Frecuencia de 50khz
+//    EPwm1Regs.TBPRD               = 50000;  // Frecuencia de .5khz
     EPwm1Regs.TBCTL.bit.CTRMODE   = 3;    // freeze counter
     EPwm1Regs.TBCTL.bit.HSPCLKDIV = 0x1;  // Divide el reloj en 2
     EPwm1Regs.TBCTL.bit.CLKDIV    = 0x0;  // Divide el reloj en 1
@@ -880,7 +881,8 @@ void ADC_initAdcA(void)
 void SetupADCEpwm2(void)
 {
     Uint16 acqps;
-    acqps = 200; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
+//    acqps = 200; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
+    acqps = 800; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
 
     EALLOW;
     SetupSOC(soc0, 0, acqps, 5); // SOC0 convierte ADC-A0 y hace trigger desde ePWM1(5) con una ventana de acqps
@@ -891,7 +893,7 @@ void SetupADCEpwm2(void)
 //    SetupSOC(soc5, 5, acqps, 5); // SOC5 convierte ADC-A5 y hace trigger desde ePWM1(5) con una ventana de acqps
     SetupSOC(soc6, 0, acqps, 5); // SOC6 convierte ADC-B0 y hace trigger desde ePWM1(5) con una ventana de acqps
     SetupSOC(soc7, 1, acqps, 5); // SOC7 convierte ADC-B1 y hace trigger desde ePWM1(5) con una ventana de acqps
-    SetupSOC(soc8, 2, acqps, 5); // SOC7 convierte ADC-B1 y hace trigger desde ePWM1(5) con una ventana de acqps
+    SetupSOC(soc8, 2, acqps, 5); // SOC8 convierte ADC-B2 y hace trigger desde ePWM1(5) con una ventana de acqps
 
     AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 4; //fin de SOC4 genera INT1 flag
     AdcaRegs.ADCINTSEL1N2.bit.INT1E = 1;   //Habilita INT1 flag
@@ -1086,7 +1088,7 @@ void corrimiento_izq(float v1, float v2, float v3, float v4, float v5, float v6,
 
 
 //
-// cla1Isr1 - CLA1 ISR 1
+// cla1Isr1 - CLA1 ISR 1 - Fault mode
 //
 __interrupt void cla1Isr1 () // Fault mode
 {
@@ -1098,9 +1100,9 @@ __interrupt void cla1Isr1 () // Fault mode
     PieCtrlRegs.PIEACK.all = (PIEACK_GROUP1 | PIEACK_GROUP11);
     // Read the CLA_ADC value and put it in the AdcBuf_dsp_fall buffer
     //
-    for (i = 0; i < 7; i++)
+    for (i = 0; i < 8; i++)
     {
-        AdcBuf_dsp_fall[i+7*SampleCount] = adc_read[i];
+        AdcBuf_dsp_fall[i+8*SampleCount] = adc_read[i];
     }
     // Make sure that the buffer does not overflow
     // the buffer size.  If it is larger than 10
@@ -1115,17 +1117,36 @@ __interrupt void cla1Isr1 () // Fault mode
 }
 
 //
-// cla1Isr2 - CLA1 ISR 2
+// cla1Isr2 - CLA1 ISR 2 - Sync_PLL
 //
 __interrupt void cla1Isr2 () // Sync_PLL
 {
-//---------------variables-pll---------------//
-    theta_l          = theta_g;
-    theta_ant_l      = theta_ant_g;
-    integrador_ant_l = integrador_ant_g;
-    integrador_l     = integrador_g;
+
+//--------------variables-pll----------------//
+    vg_d_men_prom_l = vg_d_men_prom_g; // l cpu->cla, g cla->cpu
+    vg_q_men_prom_l = vg_q_men_prom_g;
+    vg_d_mas_prom_l = vg_d_mas_prom_g;
+    vg_q_mas_prom_l = vg_q_mas_prom_g;
+
+    vg_d_men_ref_ant_l = vg_d_men_ref_ant_g;
+    vg_d_men_prom_ant_l = vg_d_men_prom_ant_g;
+    vg_q_men_ref_ant_l = vg_q_men_ref_ant_g;
+    vg_q_men_prom_ant_l = vg_q_men_prom_ant_g;
+
+    vg_d_mas_ref_ant_l = vg_d_mas_ref_ant_g;
+    vg_d_mas_prom_ant_l = vg_d_mas_prom_ant_g;
+    vg_q_mas_ref_ant_l = vg_q_mas_ref_ant_g;
+    vg_q_mas_prom_ant_l = vg_q_mas_prom_ant_g;
 //-------------------------------------------//
-//---------------variables-pll---------------//
+//------------variables-pi-pll---------------//
+    integr_ddsrf_l = integr_ddsrf_g;
+    integr_ddsrf_ant_l = integr_ddsrf_ant_g;
+    theta_ddsrf_ant_l = theta_ddsrf_ant_g;
+    theta_ddsrf_l = theta_ddsrf_g;
+//-------------------------------------------//
+
+
+//---------------variables-dq----------------//
     vg_d  = a9;
     vg_q  = a10;
 //-------------------------------------------//
@@ -1173,12 +1194,13 @@ __interrupt void cla1Isr5 ()
 }
 
 //
-// cla1Isr6 - CLA1 ISR 6
+// cla1Isr6 - CLA1 ISR 6 - Modo de Fallas
+
 //
 __interrupt void cla1Isr6 ()
 {
 //--------------variables-pll----------------//
-    vg_d_men_prom_l = vg_d_men_prom_g; // las l cpu->cla, las g cla->cpu
+    vg_d_men_prom_l = vg_d_men_prom_g; // l cpu->cla, g cla->cpu
     vg_q_men_prom_l = vg_q_men_prom_g;
     vg_d_mas_prom_l = vg_d_mas_prom_g;
     vg_q_mas_prom_l = vg_q_mas_prom_g;
@@ -1272,17 +1294,34 @@ __interrupt void cla1Isr6 ()
 }
 
 //
-// cla1Isr7 - CLA1 ISR 7
+// cla1Isr7 - CLA1 ISR 7 - Normal mode
 //
 __interrupt void cla1Isr7 () // Normal mode
 {
 
-//---------------variables-pll---------------//
-    theta_l          = theta_g;
-    theta_ant_l      = theta_ant_g;
-    integrador_ant_l = integrador_ant_g;
-    integrador_l     = integrador_g;
+//--------------variables-pll----------------//
+    vg_d_men_prom_l = vg_d_men_prom_g; // l cpu->cla, g cla->cpu
+    vg_q_men_prom_l = vg_q_men_prom_g;
+    vg_d_mas_prom_l = vg_d_mas_prom_g;
+    vg_q_mas_prom_l = vg_q_mas_prom_g;
+
+    vg_d_men_ref_ant_l = vg_d_men_ref_ant_g;
+    vg_d_men_prom_ant_l = vg_d_men_prom_ant_g;
+    vg_q_men_ref_ant_l = vg_q_men_ref_ant_g;
+    vg_q_men_prom_ant_l = vg_q_men_prom_ant_g;
+
+    vg_d_mas_ref_ant_l = vg_d_mas_ref_ant_g;
+    vg_d_mas_prom_ant_l = vg_d_mas_prom_ant_g;
+    vg_q_mas_ref_ant_l = vg_q_mas_ref_ant_g;
+    vg_q_mas_prom_ant_l = vg_q_mas_prom_ant_g;
 //-------------------------------------------//
+//------------variables-pi-pll---------------//
+    integr_ddsrf_l = integr_ddsrf_g;
+    integr_ddsrf_ant_l = integr_ddsrf_ant_g;
+    theta_ddsrf_ant_l = theta_ddsrf_ant_g;
+    theta_ddsrf_l = theta_ddsrf_g;
+//-------------------------------------------//
+
 //----------Controlador-de-voltaje-----------//
     x_ant_v_l = x_ant_v_g;
     x_v_l     = x_v_g;
@@ -1305,13 +1344,10 @@ __interrupt void cla1Isr7 () // Normal mode
 
 corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
 
-//
-// Clear the ADC interrupt flag so the next SOC can occur
-// Clear the PIEACK bits so another interrupt can be taken
-//
-//    EPwm2Regs.CMPA.bit.CMPA = 250*(v_conv_a + 1);
-//    EPwm3Regs.CMPA.bit.CMPA = 250*(v_conv_b + 1);
-//    EPwm4Regs.CMPA.bit.CMPA = 250*(v_conv_c + 1);
+
+EPwm2Regs.CMPA.bit.CMPA = 250*(v_conv_a + 1);
+EPwm3Regs.CMPA.bit.CMPA = 250*(v_conv_b + 1);
+EPwm4Regs.CMPA.bit.CMPA = 250*(v_conv_c + 1);
 
 //    valores;
 
@@ -1331,39 +1367,38 @@ corrimiento_izq (a1, a2, a3, a4, a5, a6, a7, a8); // Guardado de datos
 //    if (aaa <= 20)
 
     // Escritura escalada de variables
-    if (aaa <= 2)
-
-    {
-        aaa++;
-    }
-    else
-    {
-        aaa = 0;
-        if (i < largo_theta)
-        {
-            theta_buff[i] = a3;
-            alfa_buff[i]  = a1; //    a1 = vg_d;
-            beta_buff[i]  = a2; //    a2 = vg_q;
-            i++;
-        }
-        else
-        {
-            i = 0;
-        }
-    }
-
-//    if (i < largo_theta)
+//    if (aaa <= 2)
+//
 //    {
-////        theta_buff[i] = theta_l;
-//        theta_buff[i] = a3;
-//        alfa_buff[i]  = a1; //    a1 = vg_d;
-//        beta_buff[i]  = a2; //    a2 = vg_q;
-//        i++;
+//        aaa++;
 //    }
 //    else
 //    {
-//        i = 0;
+//        aaa = 0;
+//        if (i < largo_theta)
+//        {
+////            theta_buff[i] = a3;
+//            alfa_buff[i]  = a1; //    a1 = vg_d;
+//            beta_buff[i]  = a2; //    a2 = vg_q;
+//            i++;
+//        }
+//        else
+//        {
+//            i = 0;
+//        }
 //    }
+
+    if (i < largo_theta)
+    {
+        alfa_buff[i]  = a1; //    a1 = vg_d;
+        beta_buff[i]  = a2; //    a2 = vg_q;
+        i++;
+    }
+    else
+    {
+        i = 0;
+    }
+
 
 
 

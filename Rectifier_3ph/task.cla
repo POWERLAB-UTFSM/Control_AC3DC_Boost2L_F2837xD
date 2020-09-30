@@ -18,15 +18,15 @@ __interrupt void Cla1Task1 (void) // Fault mode
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
 
-    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-    i_out= (float)(AdcbResultRegs.ADCRESULT8);
-    a1 = vdc;
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*0.244200244 - 0)  ; // Curva para ADC-A0, Voltaje entre 0-100V, de 0 a 3V
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*0.170940171 - 350); // Curva para ADC-A1, Voltaje entre -+350V, de 0 a 3V
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*0.170940171 - 350); // Curva para ADC-A2, Voltaje entre -+350V, de 0 a 3V
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*0.170940171 - 350); // Curva para ADC-A3, Voltaje entre -+350V, de 0 a 3V
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*0.017094017 - 20);  // Curva para ADC-A4, Voltaje entre -20 a 50V, de 0 a 3V
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*0.017094017 - 20);  // Curva para ADC-B0, Voltaje entre -20 a 50V, de 0 a 3V
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*0.017094017 - 20);  // Curva para ADC-B1, Voltaje entre -20 a 50V, de 0 a 3V
+    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*0.003663004 - 0);   // Curva para ADC-B2, Voltaje entre 0-15V, de 0 a 3V
+
 //-------------------------------------------//
     adc_read[0] = vg_a;
     adc_read[1] = vg_b;
@@ -35,6 +35,7 @@ __interrupt void Cla1Task1 (void) // Fault mode
     adc_read[4] = ig_b;
     adc_read[5] = ig_c;
     adc_read[6] = vdc;
+    adc_read[7] = i_out;
 }
 
 __interrupt void Cla1Task2 (void) // Sync_PLL
@@ -58,29 +59,73 @@ __interrupt void Cla1Task2 (void) // Sync_PLL
     vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
     vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
 //-------------------------------------------//
-//-----------transf_alfa-beta-a-dq-----------//
-    float vg_d, vg_q, cos_theta, sin_theta;
+//----------alfa-beta-a-dq-mas-menos---------//
+    float vg_d, vg_q;
+    // datos para DDSRF-PLL
 
-    cos_theta = CLAcos(theta_l);
-    sin_theta = CLAsin(theta_l);
-    vg_d    =  cos_theta*vg_alfa + sin_theta*vg_beta;
-    vg_q    = -sin_theta*vg_alfa + cos_theta*vg_beta;
+    float cos_theta_ddsrf, sin_theta_ddsrf, cos_mas_2_theta, sen_mas_2_theta, cos_men_2_theta, sin_men_2_theta;
+
+    cos_theta_ddsrf = CLAcos(   theta_ddsrf_l);
+    sin_theta_ddsrf = CLAsin(   theta_ddsrf_l);
+    cos_mas_2_theta = CLAcos( 2*theta_ddsrf_l);
+    sen_mas_2_theta = CLAsin( 2*theta_ddsrf_l);
+    cos_men_2_theta = CLAcos(-2*theta_ddsrf_l);
+    sin_men_2_theta = CLAsin(-2*theta_ddsrf_l);
+
+
+    vg_d    =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q    = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+
+    float vg_d_men, vg_q_men, vg_d_mas, vg_q_mas, vg_d_men_ref, vg_q_men_ref, vg_d_mas_ref, vg_q_mas_ref;
+
+    vg_d_men =  cos_theta_ddsrf*vg_alfa - sin_theta_ddsrf*vg_beta;
+    vg_q_men =  sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+    vg_d_mas =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q_mas = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+    vg_d_men_ref = vg_d_men - ( cos_men_2_theta*vg_d_mas_prom_l + sin_men_2_theta*vg_q_mas_prom_l);
+    vg_q_men_ref = vg_q_men - (-sin_men_2_theta*vg_d_mas_prom_l + cos_men_2_theta*vg_q_mas_prom_l);
+
+    vg_d_mas_ref = vg_d_mas - ( cos_mas_2_theta*vg_d_men_prom_l + sen_mas_2_theta*vg_q_men_prom_l);
+    vg_q_mas_ref = vg_q_mas - (-sen_mas_2_theta*vg_d_men_prom_l + cos_mas_2_theta*vg_q_men_prom_l);
+
+    // LPF
+
+    vg_d_men_prom_g = vg_d_men_ref_ant_l*omega_lpf*h_sample + vg_d_men_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_men_prom_g = vg_q_men_ref_ant_l*omega_lpf*h_sample + vg_q_men_prom_ant_l*(1-omega_lpf*h_sample);
+
+    vg_d_mas_prom_g = vg_d_mas_ref_ant_l*omega_lpf*h_sample + vg_d_mas_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_mas_prom_g = vg_q_mas_ref_ant_l*omega_lpf*h_sample + vg_q_mas_prom_ant_l*(1-omega_lpf*h_sample);
+
 //-------------------------------------------//
 //-------------Sincronización_PLL------------//
-    float actuac, prueba;
+    float actuac_ddsrf, theta_ddsrf_prueba;
 
-    actuac = integrador_l*ki_pll + vg_q*kp_pll + 2*pi*f;
-    integrador_g = h_sample*vg_q+ integrador_ant_l;     //integrador
-    prueba = h_sample*actuac + theta_ant_l;
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
+    theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
+    if (theta_ddsrf_prueba >= lim_up_pll)
+    {
+        theta_ddsrf_prueba = theta_ddsrf_prueba - lim_up_pll;   //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
+    }
+    theta_ddsrf_g = theta_ddsrf_prueba;
 
-        if (prueba >= lim_up_pll)
-            prueba = prueba - lim_up_pll;//% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
-
-    theta_g = prueba;
 //-------------------------------------------//
-//----------actualizacion-variables----------//
-    theta_ant_g      = theta_g;
-    integrador_ant_g = integrador_g;
+//--------actualizacion-variables-PLL--------//
+
+    vg_d_men_ref_ant_g  = vg_d_men_ref;
+    vg_d_men_prom_ant_g = vg_d_men_prom_g;
+
+    vg_q_men_ref_ant_g  = vg_q_men_ref;
+    vg_q_men_prom_ant_g = vg_q_men_prom_g;
+
+    vg_d_mas_ref_ant_g  = vg_d_mas_ref;
+    vg_d_mas_prom_ant_g = vg_d_mas_prom_g;
+
+    vg_q_mas_ref_ant_g  = vg_q_mas_ref;
+    vg_q_mas_prom_ant_g = vg_q_mas_prom_g;
 //-------------------------------------------//
 
     a1 = vdc;
@@ -110,12 +155,12 @@ __interrupt void Cla1Task5 (void)
 
 }
 
-__interrupt void Cla1Task6 (void)
+__interrupt void Cla1Task6 (void) // Tarea de prueba, utilizara para implementar DDSRF-PLL
 {
 
     __mdebugstop();
 //------------Lectura-de-variables-----------//
-    float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
+    float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;// i_out;
 
     vdc  = (float)(AdcaResultRegs.ADCRESULT0);
     vg_a = (float)(AdcaResultRegs.ADCRESULT1);
@@ -124,9 +169,9 @@ __interrupt void Cla1Task6 (void)
     ig_a = (float)(AdcaResultRegs.ADCRESULT4);
     ig_b = (float)(AdcbResultRegs.ADCRESULT6);
     ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-    i_out= (float)(AdcbResultRegs.ADCRESULT8);
+//    i_out= (float)(AdcbResultRegs.ADCRESULT8);
 
-    vdc  = 0;
+//    vdc  = 0;
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta, ig_alfa, ig_beta;
@@ -392,117 +437,106 @@ __interrupt void Cla1Task7 (void) // Normal mode
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
 
-    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-    i_out= (float)(AdcbResultRegs.ADCRESULT8);
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*0.244200244 - 0)  ; // Curva para ADC-A0, Voltaje entre 0-100V, de 0 a 3V
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*0.170940171 - 350); // Curva para ADC-A1, Voltaje entre -+350V, de 0 a 3V
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*0.170940171 - 350); // Curva para ADC-A2, Voltaje entre -+350V, de 0 a 3V
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*0.170940171 - 350); // Curva para ADC-A3, Voltaje entre -+350V, de 0 a 3V
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*0.017094017 - 20);  // Curva para ADC-A4, Voltaje entre -20 a 50V, de 0 a 3V
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*0.017094017 - 20);  // Curva para ADC-B0, Voltaje entre -20 a 50V, de 0 a 3V
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*0.017094017 - 20);  // Curva para ADC-B1, Voltaje entre -20 a 50V, de 0 a 3V
+    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*0.003663004 - 0);   // Curva para ADC-B2, Voltaje entre 0-15V, de 0 a 3V
 
-//    vdc  = 749.1;
-//    vg_a = -283.9;
-//    vg_b = 31.8;
-//    vg_c = 252;
-//    ig_a = -9.82;
-//    ig_b = 1.16;
-//    ig_c = 8.65;
-
-    vdc  = 0;
-//    vg_a = -283.9;
-//    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*0.000732422 - 1.5)*311.12;
-//    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*0.000732422 - 1.5)*311.12;
-
-//    vg_b = 0;
-//    vg_c = 0;
-    ig_a = 0;
-    ig_b = 0;
-    ig_c = 0;
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta, ig_alfa, ig_beta;
 
-//    vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
-//    vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
-
-//    float lectura, modificacion;
-//
-//    lectura = (float)(AdcaResultRegs.ADCRESULT1);
-//    modificacion = lectura*0.00036634-0.2873;   // Curva para ADC-A1, con Escalón 0-1, de 0.5 a 2.5V
-//    a1 = modificacion;
-//    a2 = u_v;
-
-//        a1 = modificacion;
-//        a2 = x_iq_g;
-    //    a3 = u_iq;
-    //    a3 = vg_d;
-    //    a4 = vg_q;
-    //    a5 = actuac;
-    //    a6 = vg_d;
-    //    a7 = vg_q;
-
-//    vg_alfa = (float)(AdcaResultRegs.ADCRESULT1)*0.22840  - 490.8769533;
-//    vg_beta = (float)(AdcaResultRegs.ADCRESULT2)*0.227814 - 490.6944522;
-
-    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
-    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
-    if (vg_alfa > 311.13)
-    {
-        vg_alfa = 311.12;
-    }
-    else if (vg_alfa < -311.13)
-    {
-        vg_alfa = -311.12;
-    }
-    else
-    {
-    }
-
-    if (vg_beta > 311.13)
-    {
-        vg_beta = 311.12;
-    }
-    else if (vg_beta < -311.13)
-    {
-        vg_beta = -311.12;
-    }
-    else
-    {
-    }
-//    a1 = vg_alfa;
-//    a2 = vg_beta;
+    vg_alfa = dos_div_3*vg_a - uno_div_3*vg_b - uno_div_3*vg_c;
+    vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
     ig_alfa = dos_div_3*ig_a - uno_div_3*ig_b - uno_div_3*ig_c;
     ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
+//    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
+//    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
+
+//-----Limitaciones al voltaje Vg_alfa y vg_beta, en caso de ser necesario-----//
+//    if (vg_alfa > 311.13)
+//    {
+//        vg_alfa = 311.12;
+//    }
+//    else if (vg_alfa < -311.13)
+//    {
+//        vg_alfa = -311.12;
+//    }
+//    else
+//    {
+//    }
+//
+//    if (vg_beta > 311.13)
+//    {
+//        vg_beta = 311.12;
+//    }
+//    else if (vg_beta < -311.13)
+//    {
+//        vg_beta = -311.12;
+//    }
+//    else
+//    {
+//    }
 //-------------------------------------------//
-//-----------transf_alfa-beta-a-dq-----------//
-    float vg_d, vg_q, ig_d, ig_q, cos_theta, sin_theta;
+//----------alfa-beta-a-dq-mas-menos---------//
+    float vg_d, vg_q, ig_d, ig_q;
+    // datos para DDSRF-PLL
 
-    cos_theta = CLAcos(theta_l);
-    sin_theta = CLAsin(theta_l);
+    float cos_theta_ddsrf, sin_theta_ddsrf, cos_mas_2_theta, sen_mas_2_theta, cos_men_2_theta, sin_men_2_theta;
 
-    vg_d    =  cos_theta*vg_alfa + sin_theta*vg_beta;
-    vg_q    = -sin_theta*vg_alfa + cos_theta*vg_beta;
-    ig_d    =  cos_theta*ig_alfa + sin_theta*ig_beta;
-    ig_q    = -sin_theta*ig_alfa + cos_theta*ig_beta;
+    cos_theta_ddsrf = CLAcos(   theta_ddsrf_l);
+    sin_theta_ddsrf = CLAsin(   theta_ddsrf_l);
+    cos_mas_2_theta = CLAcos( 2*theta_ddsrf_l);
+    sen_mas_2_theta = CLAsin( 2*theta_ddsrf_l);
+    cos_men_2_theta = CLAcos(-2*theta_ddsrf_l);
+    sin_men_2_theta = CLAsin(-2*theta_ddsrf_l);
+
+
+    vg_d    =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q    = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+    ig_d    =  cos_theta_ddsrf*ig_alfa + sin_theta_ddsrf*ig_beta;
+    ig_q    = -sin_theta_ddsrf*ig_alfa + cos_theta_ddsrf*ig_beta;
+
+
+    float vg_d_men, vg_q_men, vg_d_mas, vg_q_mas, vg_d_men_ref, vg_q_men_ref, vg_d_mas_ref, vg_q_mas_ref;
+
+    vg_d_men =  cos_theta_ddsrf*vg_alfa - sin_theta_ddsrf*vg_beta;
+    vg_q_men =  sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+    vg_d_mas =  cos_theta_ddsrf*vg_alfa + sin_theta_ddsrf*vg_beta;
+    vg_q_mas = -sin_theta_ddsrf*vg_alfa + cos_theta_ddsrf*vg_beta;
+
+    vg_d_men_ref = vg_d_men - ( cos_men_2_theta*vg_d_mas_prom_l + sin_men_2_theta*vg_q_mas_prom_l);
+    vg_q_men_ref = vg_q_men - (-sin_men_2_theta*vg_d_mas_prom_l + cos_men_2_theta*vg_q_mas_prom_l);
+
+    vg_d_mas_ref = vg_d_mas - ( cos_mas_2_theta*vg_d_men_prom_l + sen_mas_2_theta*vg_q_men_prom_l);
+    vg_q_mas_ref = vg_q_mas - (-sen_mas_2_theta*vg_d_men_prom_l + cos_mas_2_theta*vg_q_men_prom_l);
+
+    // LPF
+
+    vg_d_men_prom_g = vg_d_men_ref_ant_l*omega_lpf*h_sample + vg_d_men_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_men_prom_g = vg_q_men_ref_ant_l*omega_lpf*h_sample + vg_q_men_prom_ant_l*(1-omega_lpf*h_sample);
+
+    vg_d_mas_prom_g = vg_d_mas_ref_ant_l*omega_lpf*h_sample + vg_d_mas_prom_ant_l*(1-omega_lpf*h_sample);
+    vg_q_mas_prom_g = vg_q_mas_ref_ant_l*omega_lpf*h_sample + vg_q_mas_prom_ant_l*(1-omega_lpf*h_sample);
+
 //-------------------------------------------//
 //-------------Sincronización_PLL------------//
-    float actuac, prueba;
+    float actuac_ddsrf, theta_ddsrf_prueba;
 
-    actuac = integrador_l*ki_pll + vg_q*kp_pll + 2*pi*f;
-    integrador_g = h_sample*vg_q + integrador_ant_l;  //   integrador
-    prueba = h_sample*actuac + theta_ant_l;
-        if (prueba >= lim_up_pll)
-        {
-            prueba = prueba - lim_up_pll;            //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
-        }
-    theta_g = prueba;
-//    a1 = vg_alfa;
-//    a2 = vg_beta;
-//    a3 = prueba;
-    a1 = vg_d;
-    a2 = vg_q;
-    a3 = prueba;
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
+    theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
+    if (theta_ddsrf_prueba >= lim_up_pll)
+    {
+        theta_ddsrf_prueba = theta_ddsrf_prueba - lim_up_pll;   //% theta_g - lim_upp_pll;  %// reinicia el valor de la triangular cuando alcanza 2pi
+    }
+    theta_ddsrf_g = theta_ddsrf_prueba;
+
 //-------------------------------------------//
 //----------Controlador-de-voltaje-----------//
     float err_v, u_v, id_ref;
@@ -557,44 +591,53 @@ __interrupt void Cla1Task7 (void) // Normal mode
 
 //-------------------------------------------//
 //----------actualizacion-variables----------//
-    theta_ant_g      = theta_g;         //pll
-    integrador_ant_g = integrador_g;    //pll
+    //----------Actualizacion_PLL--------------//
+
+        vg_d_men_ref_ant_g  = vg_d_men_ref;
+        vg_d_men_prom_ant_g = vg_d_men_prom_g;
+
+        vg_q_men_ref_ant_g  = vg_q_men_ref;
+        vg_q_men_prom_ant_g = vg_q_men_prom_g;
+
+        vg_d_mas_ref_ant_g  = vg_d_mas_ref;
+        vg_d_mas_prom_ant_g = vg_d_mas_prom_g;
+
+        vg_q_mas_ref_ant_g  = vg_q_mas_ref;
+        vg_q_mas_prom_ant_g = vg_q_mas_prom_g;
+
+        // PI del DDSRF-PLL
+        integr_ddsrf_ant_g = integr_ddsrf_g;
+        theta_ddsrf_ant_g  = theta_ddsrf_g;
+    //-------------------------------------------//
 
     x_ant_v_g = x_v_g;                  //controlador de voltaje
 
     x_ant_id_g = x_id_g;                //controlador i_d
 
     x_ant_iq_g = x_iq_g;                //controlador i_q
-////-------------------------------------------//
-////--------------dq-a-alpha_beta--------------//
-//    float v_conv_alfa, v_conv_beta;
-//
-//    v_conv_alfa = cos_theta*v_conv_d - sin_theta*v_conv_q;
-//    v_conv_beta = sin_theta*v_conv_d + cos_theta*v_conv_q;
-////-------------------------------------------//
-////--------------alpha_beta-a-abc-------------//
-//    v_conv_a = 2*v_conv_alfa/vdc;
-//    v_conv_b = 2*(-0.5*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
-//    v_conv_c = 2*(-0.5*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
-////-------------------------------------------//
-//
-////    a1 = vg_alfa;
-////    a2 = vg_beta;
-////    a3 = vg_d;
-////    a4 = vg_q;
-//     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
-//    a1 = vdc;
-//    a2 = vg_a;
-//    a3 = vg_b;
-//    a4 = vg_c;
-//    a5 = ig_a;
-//    a6 = ig_b;
-//    a7 = ig_c;
-//    a8 = i_out;
-//    a9 = vg_d;
-//    a10 = vg_q;
-//    a1 = (float)(AdcaResultRegs.ADCRESULT1);
-//    a2 = (float)(AdcaResultRegs.ADCRESULT2);
+//-------------------------------------------//
+//--------------dq-a-alpha_beta--------------//
+    float v_conv_alfa, v_conv_beta;
+
+    v_conv_alfa = cos_theta_ddsrf*v_conv_d - sin_theta_ddsrf*v_conv_q;
+    v_conv_beta = sin_theta_ddsrf*v_conv_d + cos_theta_ddsrf*v_conv_q;
+//-------------------------------------------//
+//--------------alpha_beta-a-abc-------------//
+    v_conv_a = 2*v_conv_alfa/vdc;
+    v_conv_b = 2*(-0.5*v_conv_alfa + (raiz_de_3/2)*v_conv_beta)/vdc;
+    v_conv_c = 2*(-0.5*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
+//-------------------------------------------//
+
+    a1 = vdc;
+    a2 = vg_a;
+    a3 = vg_b;
+    a4 = vg_c;
+    a5 = ig_a;
+    a6 = ig_b;
+    a7 = ig_c;
+    a8 = i_out;
+    a9 = vg_d;
+    a10 = vg_q;
 }
 
 __interrupt void Cla1Task8 (void)

@@ -35,7 +35,7 @@ extern "C" {
 #define normal_mode     4
 #define apagado         5
 #define fault_mode      6
-extern float adc_read[7];
+extern float adc_read[8];
 //cambio de estados
 //#define boton_1         1
 //#define boton_2         0
