@@ -18,14 +18,14 @@ __interrupt void Cla1Task1 (void) // Fault mode
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
 
-    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*0.244200244 - 0)  ; // Curva para ADC-A0, Voltaje entre 0-100V, de 0 a 3V
-    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*0.170940171 - 350); // Curva para ADC-A1, Voltaje entre -+350V, de 0 a 3V
-    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*0.170940171 - 350); // Curva para ADC-A2, Voltaje entre -+350V, de 0 a 3V
-    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*0.170940171 - 350); // Curva para ADC-A3, Voltaje entre -+350V, de 0 a 3V
-    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*0.017094017 - 20);  // Curva para ADC-A4, Voltaje entre -20 a 50V, de 0 a 3V
-    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*0.017094017 - 20);  // Curva para ADC-B0, Voltaje entre -20 a 50V, de 0 a 3V
-    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*0.017094017 - 20);  // Curva para ADC-B1, Voltaje entre -20 a 50V, de 0 a 3V
-    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*0.003663004 - 0);   // Curva para ADC-B2, Voltaje entre 0-15V, de 0 a 3V
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*m_vdc  - n_vdc);  // Curva para ADC-A0, Voltaje entre   0-1000V,  de 0 a 3.3V | RTBox Pin AO15
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*m_vg   - n_vg);   // Curva para ADC-A1, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO13
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*m_vg   - n_vg);   // Curva para ADC-A2, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO11
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*m_vg   - n_vg);   // Curva para ADC-A3, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO9
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*m_ig   - n_ig);   // Curva para ADC-A4, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO7
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*m_ig   - n_ig);   // Curva para ADC-B0, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO14
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*m_ig   - n_ig);   // Curva para ADC-B1, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO12
+    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*m_iout - n_iout); // Curva para ADC-B2, Voltaje entre   0-15V,    de 0 a 3.3V | RTBox Pin AO10
 
 //-------------------------------------------//
     adc_read[0] = vg_a;
@@ -44,14 +44,14 @@ __interrupt void Cla1Task2 (void) // Sync_PLL
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
 
-    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-    i_out= (float)(AdcbResultRegs.ADCRESULT8);
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*m_vdc  - n_vdc);  // Curva para ADC-A0, Voltaje entre   0-1000V,  de 0 a 3.3V | RTBox Pin AO15
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*m_vg   - n_vg);   // Curva para ADC-A1, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO13
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*m_vg   - n_vg);   // Curva para ADC-A2, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO11
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*m_vg   - n_vg);   // Curva para ADC-A3, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO9
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*m_ig   - n_ig);   // Curva para ADC-A4, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO7
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*m_ig   - n_ig);   // Curva para ADC-B0, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO14
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*m_ig   - n_ig);   // Curva para ADC-B1, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO12
+    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*m_iout - n_iout); // Curva para ADC-B2, Voltaje entre   0-15V,    de 0 a 3.3V | RTBox Pin AO10
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta;
@@ -162,16 +162,13 @@ __interrupt void Cla1Task6 (void) // Tarea de prueba, utilizara para implementar
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c;// i_out;
 
-    vdc  = (float)(AdcaResultRegs.ADCRESULT0);
-    vg_a = (float)(AdcaResultRegs.ADCRESULT1);
-    vg_b = (float)(AdcaResultRegs.ADCRESULT2);
-    vg_c = (float)(AdcaResultRegs.ADCRESULT3);
-    ig_a = (float)(AdcaResultRegs.ADCRESULT4);
-    ig_b = (float)(AdcbResultRegs.ADCRESULT6);
-    ig_c = (float)(AdcbResultRegs.ADCRESULT7);
-//    i_out= (float)(AdcbResultRegs.ADCRESULT8);
-
-//    vdc  = 0;
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*m_vdc  - n_vdc);  // Curva para ADC-A0, Voltaje entre   0-1000V,  de 0 a 3.3V | RTBox Pin AO15
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*m_vg   - n_vg);   // Curva para ADC-A1, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO13
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*m_vg   - n_vg);   // Curva para ADC-A2, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO11
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*m_vg   - n_vg);   // Curva para ADC-A3, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO9
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*m_ig   - n_ig);   // Curva para ADC-A4, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO7
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*m_ig   - n_ig);   // Curva para ADC-B0, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO14
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*m_ig   - n_ig);   // Curva para ADC-B1, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO12
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//
     float vg_alfa, vg_beta, ig_alfa, ig_beta;
@@ -186,9 +183,9 @@ __interrupt void Cla1Task6 (void) // Tarea de prueba, utilizara para implementar
 //    modificacion = lectura*0.00036634-0.2873;   // Curva para ADC-A1, con Escalón 0-1, de 0.5 a 2.5V
 //    a1 = modificacion;
 //    a2 = u_v;
-
-    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
-    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
+// Variables para leer señales alfa beta mediante Generador de señales
+//    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
+//    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
 
     if (vg_alfa > 311.13)
     {
@@ -437,14 +434,14 @@ __interrupt void Cla1Task7 (void) // Normal mode
 //------------Lectura-de-variables-----------//
     float vdc, vg_a, vg_b, vg_c, ig_a, ig_b, ig_c, i_out;
 
-    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*0.244200244 - 0)  ; // Curva para ADC-A0, Voltaje entre 0-100V, de 0 a 3V
-    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*0.170940171 - 350); // Curva para ADC-A1, Voltaje entre -+350V, de 0 a 3V
-    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*0.170940171 - 350); // Curva para ADC-A2, Voltaje entre -+350V, de 0 a 3V
-    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*0.170940171 - 350); // Curva para ADC-A3, Voltaje entre -+350V, de 0 a 3V
-    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*0.017094017 - 20);  // Curva para ADC-A4, Voltaje entre -20 a 50V, de 0 a 3V
-    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*0.017094017 - 20);  // Curva para ADC-B0, Voltaje entre -20 a 50V, de 0 a 3V
-    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*0.017094017 - 20);  // Curva para ADC-B1, Voltaje entre -20 a 50V, de 0 a 3V
-    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*0.003663004 - 0);   // Curva para ADC-B2, Voltaje entre 0-15V, de 0 a 3V
+    vdc  = ((float)(AdcaResultRegs.ADCRESULT0)*m_vdc  - n_vdc);  // Curva para ADC-A0, Voltaje entre   0-1000V,  de 0 a 3.3V | RTBox Pin AO15
+    vg_a = ((float)(AdcaResultRegs.ADCRESULT1)*m_vg   - n_vg);   // Curva para ADC-A1, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO13
+    vg_b = ((float)(AdcaResultRegs.ADCRESULT2)*m_vg   - n_vg);   // Curva para ADC-A2, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO11
+    vg_c = ((float)(AdcaResultRegs.ADCRESULT3)*m_vg   - n_vg);   // Curva para ADC-A3, Voltaje entre -+350V,     de 0 a 3.3V | RTBox Pin AO9
+    ig_a = ((float)(AdcaResultRegs.ADCRESULT4)*m_ig   - n_ig);   // Curva para ADC-A4, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO7
+    ig_b = ((float)(AdcbResultRegs.ADCRESULT6)*m_ig   - n_ig);   // Curva para ADC-B0, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO14
+    ig_c = ((float)(AdcbResultRegs.ADCRESULT7)*m_ig   - n_ig);   // Curva para ADC-B1, Voltaje entre  -20 a 50V, de 0 a 3.3V | RTBox Pin AO12
+    i_out= ((float)(AdcbResultRegs.ADCRESULT8)*m_iout - n_iout); // Curva para ADC-B2, Voltaje entre   0-15V,    de 0 a 3.3V | RTBox Pin AO10
 
 //-------------------------------------------//
 //----------transf_abc-a-alfa-beta-----------//

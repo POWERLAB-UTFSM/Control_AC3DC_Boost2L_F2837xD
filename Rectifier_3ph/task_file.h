@@ -81,6 +81,29 @@ extern float vect[6];
 #define dos_div_3   0.66667
 //-------------------------------------------//
 
+//------------Variables-Lectura-ADC---------//
+// Para interpretar la lectura del adc, se deben trazar una curva de 1° orden de la forma y = mx+n,
+// donde y es la interpretación de lectura y x es el numero de cuentas de ADC.
+
+#define m_vdc       0.244200244
+#define m_vg        0.170940171
+#define m_ig        0.017094017
+#define m_iout      0.003663004
+
+#define n_vdc       0.0
+#define n_vg        350
+#define n_ig        20
+#define n_iout      0.0
+
+#define pi          3.141592
+#define f           50.0
+#define L           0.00005 // (500e-6)
+#define h_sample    0.00002 // (1/50k)
+#define raiz_de_3   1.73205
+#define uno_div_3   0.33334
+#define dos_div_3   0.66667
+//-------------------------------------------//
+
 //------------variables-SRF-pll--------------//
 #define kp_pll       8.78568
 #define ki_pll       78956.83
