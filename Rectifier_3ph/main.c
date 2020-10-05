@@ -83,8 +83,9 @@ float a9;
 #pragma DATA_SECTION(a10,"Cla1ToCpuMsgRAM");
 float a10;
 #define BLINKY_LED_GPIO    31
-#define sw1_output         39
-#define sw2_output         44
+
+#define sw1_output         39 // Salida para precarga |  Pin en RTBOX es DI14
+#define sw2_output         44 // Salida para precarga |  Pin en RTBOX es DI15
 uint16_t aaa = 0;
 int bbb = 0;
 int ccc = 0;
@@ -312,9 +313,9 @@ void main(void)
 // Step 2. enable PWM1 and PWM2 and their GPIOs
 //
     CpuSysRegs.PCLKCR2.bit.EPWM1 = 1; // PWM1A y PWM1B se utilizan de forma interna para hacer trigger al adc
-    CpuSysRegs.PCLKCR2.bit.EPWM2 = 1; // PWM2A y PWM2B se utilizan de forma Externa, salidas son DI2 y DI3
-    CpuSysRegs.PCLKCR2.bit.EPWM3 = 1; // PWM3A y PWM3B se utilizan de forma Externa, salidas son DI4 y DI5
-    CpuSysRegs.PCLKCR2.bit.EPWM4 = 1; // PWM4A y PWM4B se utilizan de forma Externa, salidas son DI6 y DI7
+    CpuSysRegs.PCLKCR2.bit.EPWM2 = 1; // PWM2A y PWM2B se utilizan de forma Externa, salidas en RTBOX son DI2 y DI3
+    CpuSysRegs.PCLKCR2.bit.EPWM3 = 1; // PWM3A y PWM3B se utilizan de forma Externa, salidas en RTBOX son DI4 y DI5
+    CpuSysRegs.PCLKCR2.bit.EPWM4 = 1; // PWM4A y PWM4B se utilizan de forma Externa, salidas en RTBOX son DI6 y DI7
 //
 // For this case just init GPIO pins for ePWM1, ePWM2
 // These functions are in the F2837xD_EPwm.c file
@@ -766,9 +767,9 @@ void CLA_initCpu1Cla1(void)
 // EPWM_initEpwm - Initialize EPWM1, EPWM2, EPWM3, EPWM4 settings
 //
 // PWM1A y PWM1B se utilizan de forma interna para hacer trigger al adc
-// PWM2A y PWM2B se utilizan de forma Externa, salidas son DI2 y DI3
-// PWM3A y PWM3B se utilizan de forma Externa, salidas son DI4 y DI5
-// PWM4A y PWM4B se utilizan de forma Externa, salidas son DI6 y DI7
+// PWM2A y PWM2B se utilizan de forma Externa, salidas en RTBOX son DI2 y DI3
+// PWM3A y PWM3B se utilizan de forma Externa, salidas en RTBOX son DI4 y DI5
+// PWM4A y PWM4B se utilizan de forma Externa, salidas en RTBOX son DI6 y DI7
 //
 void EPWM_initEpwm(void)
 {
