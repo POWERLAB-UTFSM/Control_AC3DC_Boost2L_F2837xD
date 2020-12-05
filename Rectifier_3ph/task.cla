@@ -103,7 +103,7 @@ __interrupt void Cla1Task2 (void) // Sync_PLL
 //-------------Sincronización_PLL------------//
     float actuac_ddsrf, theta_ddsrf_prueba;
 
-    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q*kp_pll + 2*pi*f;
     integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
     theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
     if (theta_ddsrf_prueba >= lim_up_pll)
@@ -289,7 +289,7 @@ __interrupt void Cla1Task6 (void) // Tarea de prueba, utilizara para implementar
 
     float actuac_ddsrf, theta_ddsrf_prueba;
 
-    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q*kp_pll + 2*pi*f;
     integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
     theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
     if (theta_ddsrf_prueba >= lim_up_pll)
@@ -451,8 +451,10 @@ __interrupt void Cla1Task7 (void) // Normal mode
     vg_beta = vg_b/raiz_de_3 - vg_c/raiz_de_3;
     ig_alfa = dos_div_3*ig_a - uno_div_3*ig_b - uno_div_3*ig_c;
     ig_beta = ig_b/raiz_de_3 - ig_c/raiz_de_3;
-//    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.22786159 - 489.705632); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
-//    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.22796029 - 490.94356);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
+
+
+//    vg_alfa = ((float)(AdcaResultRegs.ADCRESULT1)*0.252845528 - 467.7642276); // Curva para ADC-A1, con voltaje alfa +-311, de 0.5 a 2.5V
+//    vg_beta = ((float)(AdcaResultRegs.ADCRESULT2)*0.252845528 - 467.7642276);  // Curva para ADC-A2, con voltaje beta +-311, de 0.5 a 2.5V
 
 //-----Limitaciones al voltaje Vg_alfa y vg_beta, en caso de ser necesario-----//
 //    if (vg_alfa > 311.13)
@@ -525,7 +527,7 @@ __interrupt void Cla1Task7 (void) // Normal mode
 //-------------Sincronización_PLL------------//
     float actuac_ddsrf, theta_ddsrf_prueba;
 
-    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q_mas_ref*kp_pll + 2*pi*f;
+    actuac_ddsrf = integr_ddsrf_l*ki_pll + vg_q*kp_pll + 2*pi*f;
     integr_ddsrf_g = h_sample*vg_q_mas_ref + integr_ddsrf_ant_l;
     theta_ddsrf_prueba  = h_sample*actuac_ddsrf + theta_ddsrf_ant_l;
     if (theta_ddsrf_prueba >= lim_up_pll)
@@ -625,6 +627,9 @@ __interrupt void Cla1Task7 (void) // Normal mode
     v_conv_c = 2*(-0.5*v_conv_alfa - (raiz_de_3/2)*v_conv_beta)/vdc;
 //-------------------------------------------//
 
+//    a1 = theta_ddsrf_g;
+//    a2 = vg_alfa;
+//    a3 = vg_beta;
     a1 = vdc;
     a2 = vg_a;
     a3 = vg_b;
@@ -635,6 +640,8 @@ __interrupt void Cla1Task7 (void) // Normal mode
     a8 = i_out;
     a9 = vg_d;
     a10 = vg_q;
+
+
 }
 
 __interrupt void Cla1Task8 (void)

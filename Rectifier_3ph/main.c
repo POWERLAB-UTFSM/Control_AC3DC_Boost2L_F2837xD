@@ -28,28 +28,25 @@ extern uint16_t Cla1ProgRunStart, Cla1ProgLoadStart, Cla1ProgLoadSize;
 extern uint16_t CLA1mathTablesRunStart, CLA1mathTablesLoadStart;
 extern uint16_t CLA1mathTablesLoadSize;
 //
-// Globals
+// Globales
 //------------maquina-de-estados-------------//
-//uint16_t sw1, sw2; Ya no se utilizan, se cambió por salida de GPIO 39 y 44
-uint16_t estado   = 1;
-uint16_t vdc_2    = 530;
-uint16_t boton_1  = 0;
-uint16_t boton_2  = 0;
+uint16_t estado   = 0;   // Estado inicial de la máquina de estados
+uint16_t boton_1  = 0;   // Condición de salto desde estado iddle a estado sync_pll
+uint16_t boton_2  = 0;   // Condición de salto desde estado sync_pll a estado precarga
 uint16_t fault    = 0;
+float vg_d, vg_q, i_out; // Variables máquina de estados
+float va, vb, vc;        // Variables máquina de estados
+float vdc;               // Variables máquina de estados
 //-------------------------------------------//
 //-------------Variables-fallas--------------//
-
 // estado sincronizacion del pll
-float vg_d, vg_q, i_out;
-int cont_sinc; // agregar al inicio del código
+int cont_sinc;           // Contador interno para estado de fallas
 // estado precarga
-float va, vb, vc;
 int cont_precarg;
 // estado normal mode
 int cont_normal, cont_norm_fase;
-float vdc;
 //-------------------------------------------//
-//Task Variables
+// Variables tareas CLA
 //
 //------------Variables-de-prueba------------//
 #pragma DATA_SECTION(Num,"CpuToCla1MsgRAM");
@@ -329,7 +326,7 @@ void main(void)
     InitGpio();
     GPIO_SetupPinMux(BLINKY_LED_GPIO, GPIO_MUX_CPU1, 0);
     GPIO_SetupPinOptions(BLINKY_LED_GPIO, GPIO_OUTPUT, GPIO_PUSHPULL);
-
+//  Encendido y apagado de un pin
     GPIO_SetupPinMux(sw1_output, GPIO_MUX_CPU1, 0);
     GPIO_SetupPinOptions(sw1_output, GPIO_OUTPUT, GPIO_PUSHPULL);
     GPIO_SetupPinMux(sw2_output, GPIO_MUX_CPU1, 0);
@@ -387,7 +384,7 @@ void main(void)
     EALLOW;
     CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 1;
     EPwm1Regs.ETSEL.bit.SOCAEN  = 1; // Habilita pulso SOCA  (EPWMxSOCA)
-    EPwm1Regs.ETSEL.bit.SOCBEN  = 1; // Habilita pulso SOCB  (EPWMxSOCB)
+//    EPwm1Regs.ETSEL.bit.SOCBEN  = 1; // Habilita pulso SOCB  (EPWMxSOCB)
     EPwm1Regs.TBCTL.bit.CTRMODE = 2; // Contador entra en up-down count mode
 
     EPwm2Regs.TBCTL.bit.CTRMODE = 2; // Contador entra en up-down count mode
@@ -409,11 +406,6 @@ void main(void)
     integrador_ant_g = 0;
     integrador_g     = 0;
     voltFilt         = 0;
-
-//    valores_2[1];
-//    vect[0] = valores_2[1];
-//    vect[1] = valores_2[2];
-//    vect[2] = valores_2[3];
 
 
 //----------Controlador-de-voltaje-----------//
@@ -498,7 +490,7 @@ void main(void)
                             estado = fault_mode;
                         }
 
-                        if ((vdc_2 > 528)&(fault == 0))
+                        if ((vdc > 528)&(fault == 0))
                         {
                             estado = normal_mode;
                         }
@@ -506,6 +498,8 @@ void main(void)
 
                     case normal_mode:
                         estado_fallas();
+
+
 //                        sw1 = 1;
 //                        sw2 = 1;
                         GPIO_WritePin(sw1_output, 1); // Encendido del pin
@@ -623,11 +617,11 @@ void CLA_configClaMemory(void)
     // First configure the CLA to be the master for LS0(1) and then
     // set the spaces to be code blocks
     //
-    MemCfgRegs.LSxMSEL.bit.MSEL_LS0 = 1;
-    MemCfgRegs.LSxCLAPGM.bit.CLAPGM_LS0 = 0;
+MemCfgRegs.LSxMSEL.bit.MSEL_LS0 = 1;
+MemCfgRegs.LSxCLAPGM.bit.CLAPGM_LS0 = 0;
 
-    MemCfgRegs.LSxMSEL.bit.MSEL_LS1 = 1;
-    MemCfgRegs.LSxCLAPGM.bit.CLAPGM_LS1 = 0;
+MemCfgRegs.LSxMSEL.bit.MSEL_LS1 = 1;
+MemCfgRegs.LSxCLAPGM.bit.CLAPGM_LS1 = 0;
 
     EDIS;
 }
@@ -899,8 +893,8 @@ void ADC_initAdcA(void)
 void SetupADCEpwm2(void)
 {
     Uint16 acqps;
-//    acqps = 200; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
-    acqps = 800; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
+    acqps = 200; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
+//    acqps = 800; //1us -> (1e-6)/(5e-9), Mínimo son 75, set by ACQPS and  PERx.SYSCLK
 
     EALLOW;
     SetupSOC(soc0, 0, acqps, 5); // SOC0 convierte ADC-A0 y hace trigger desde ePWM1(5) con una ventana de acqps
@@ -991,17 +985,6 @@ void SetupSOC(Uint16 soc, Uint16 channel, Uint16 acqps, Uint16 trigsel)
 void estado_fallas(void)
 {
     fault = 0;
-//    // estado sincronizacion del pll
-//    int vg_d, vg_q;
-//    int cont_sinc; // agregar al inicio del código
-//    // estado precarga
-//    float va, vb, vc;
-//    int cont_precarg;
-//    // estado normal mode
-//    int cont_normal, cont_norm_fase;
-//    float vdc;
-
-
     switch (estado)
     {
         case sync_pll:
@@ -1332,8 +1315,8 @@ EPwm3Regs.CMPA.bit.CMPA = 250*(v_conv_b + 1);
 EPwm4Regs.CMPA.bit.CMPA = 250*(v_conv_c + 1);
 
 
-    // Escritura escalada de variables
-//    if (aaa <= 2)
+////     Escritura escalada de variables
+//    if (aaa <= 1)
 //
 //    {
 //        aaa++;
@@ -1344,8 +1327,11 @@ EPwm4Regs.CMPA.bit.CMPA = 250*(v_conv_c + 1);
 //        if (i < largo_theta)
 //        {
 ////            theta_buff[i] = a3;
-//            alfa_buff[i]  = a1; //    a1 = vg_d;
-//            beta_buff[i]  = a2; //    a2 = vg_q;
+////            alfa_buff[i]  = a1; //    a1 = vg_d;
+////            beta_buff[i]  = a2; //    a2 = vg_q;
+//            theta_buff[i] = a1; //    theta_ddsrf
+//            alfa_buff[i]  = a2; //    a1 = vg_d;
+//            beta_buff[i]  = a3; //    a2 = vg_q;
 //            i++;
 //        }
 //        else
@@ -1354,16 +1340,17 @@ EPwm4Regs.CMPA.bit.CMPA = 250*(v_conv_c + 1);
 //        }
 //    }
 
-    if (i < largo_theta)
-    {
-        alfa_buff[i]  = a1; //    a1 = vg_d;
-        beta_buff[i]  = a2; //    a2 = vg_q;
-        i++;
-    }
-    else
-    {
-        i = 0;
-    }
+//    if (i < largo_theta)
+//    {
+//        alfa_buff[i]  = a2; //    a1 = vg_d;
+//        beta_buff[i]  = a3; //    a2 = vg_q;
+//        theta_buff[i] = a1; // theta_ddsrf
+//        i++;
+//    }
+//    else
+//    {
+//        i = 0;
+//    }
 
 
     AdcaRegs.ADCINTFLGCLR.bit.ADCINT1 = 1; // limpia el bit de la INT1 flag

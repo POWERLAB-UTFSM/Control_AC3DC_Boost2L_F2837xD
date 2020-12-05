@@ -9,7 +9,7 @@
 </mapAttribute>
 <mapAttribute key="ccs.memoryview.pageexpr">
 <mapEntry key="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser.PIN_CLONE_VIEW_1@#$Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="Data@@0x000125C0"/>
-<mapEntry key="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser@#$Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="Data@@0x00011140"/>
+<mapEntry key="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser@#$Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="Data@@0x00011B80"/>
 </mapAttribute>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;IgnoreSoftLaunchFailures&quot;&gt;&#10;    &lt;curValue&gt;0&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.TMS320F28377D.ccxml.Texas Instruments XDS100v2 USB Debug Probe_0/C28xx_CPU1" value="${build_artifact:Rectifier_3ph}"/>

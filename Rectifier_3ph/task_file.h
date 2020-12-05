@@ -21,7 +21,7 @@ extern "C" {
 // Defines
 //
 #define FILTER_LEN      7
-#define ADC_BUF_LEN     70
+#define ADC_BUF_LEN     80
 #define ADC_BUF_PREV    48
 
 //
@@ -105,8 +105,11 @@ extern float vect[6];
 //-------------------------------------------//
 
 //------------variables-SRF-pll--------------//
-#define kp_pll       8.78568
-#define ki_pll       78956.83
+//#define kp_pll       8.78568
+//#define ki_pll       78956.83
+#define kp_pll       3.1817    // bw 700, xi = 0.7071
+#define ki_pll       1574.9196 // bw 700, xi = 0.7071
+
 #define lim_up_pll   6.283184
 
 extern float theta_l;
